@@ -8,27 +8,26 @@ with open("config.json") as cfg:
     config = json.load(cfg)
 
 
-# Plugin loader
-def load_plugins():
-    for p in os.listdir("PyDiscordBot/commands"):
-        if p.endswith(".py"):
-            p = p.rstrip(".py")
-            try:
-                bot.load_extension(f'plugins.{p}')
-            except Exception as error:
-                exc = "{0}: {1}".format(type(error).__name__, error)
-
-
-class bot(commands.Bot):
+class Bot(commands.Bot):
 
     def __init__(self):
         super().__init__(command_prefix=config["prefix"])
 
+    # Plugin Loader
+    def load_plugins(self):
+        for r, d, f in os.walk("PyDiscordBot/"):
+            for file in f:
+                if str(file).endswith(".py"):
+                    try:
+                        self.load_extension(f"{r.replace('/', '.')}.{os.path.splitext(file)[0]}")
+                    except Exception as e:
+                        print("{0}: {1}".format(type(e).__name__, e))
+
     async def on_ready(self):
-        load_plugins()
+        Bot.load_plugins(self)
         print(f"Bot name: {self.user.name}\n"
               f"Bot ID: {self.user.id}\n"
               "Successful Login")
 
 
-bot = bot().run(config["token"])
+bot = Bot().run(config["token"])
