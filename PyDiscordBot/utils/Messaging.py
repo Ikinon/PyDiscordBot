@@ -1,17 +1,14 @@
 import discord
 
 
-class FooterOpt(str):
-    async def convert(self, ctx, argument):
-        print(argument)
-        if len(argument) == 0:
-            return f"Requested by {ctx.author}"
-        else:
-            return argument
+async def convert(ctx):
+    return f"Requested by {ctx.author}"
 
 
-async def embed_basic(title, description, colour, footer: bool, footercontent: FooterOpt = None):
+async def embed_basic(ctx, title, description, colour, footer: bool, footercontent= None):
     embed = discord.Embed(title=title, description=description, colour=colour)
     if footer is True:
+        if footercontent is None:
+            footercontent= await convert(ctx)
         embed.set_footer(text=footercontent)
     return embed
