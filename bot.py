@@ -18,10 +18,13 @@ class Bot(commands.Bot):
         for r, d, f in os.walk("PyDiscordBot/"):
             for file in f:
                 if str(file).endswith(".py"):
+                    file = r + "." + file
+                    for c in (("/", "."), ("\\", ".")): file = file.replace(*c)
                     try:
-                        self.load_extension(f"{r.replace('/', '.')}.{os.path.splitext(file)[0]}")
+                        self.load_extension(f"{file.strip('.py')}")
                     except Exception as e:
-                        print("{0}: {1}".format(type(e).__name__, e))
+                        if not isinstance(e, commands.NoEntryPointError):
+                            print("{0}: {1}".format(type(e).__name__, e))
 
     async def on_ready(self):
         Bot.load_plugins(self)
