@@ -5,14 +5,13 @@ from PyDiscordBot.misc import Constants
 from PyDiscordBot.utils import MessagingUtils
 
 
-class ActionReason(commands.Converter):
-    async def convert(self, ctx, argument):
-        ret = f'{ctx.author} (ID: {ctx.author.id}): {argument}'
+async def convert(ctx, argument=None):
+    ret = f'{ctx.author}: {argument}'
 
-        if len(ret) > 512:
-            reason_max = 512 - len(ret) - len(argument)
-            raise commands.BadArgument(f'reason is too long ({len(argument)}/{reason_max})')
-        return ret
+    if len(ret) > 512:
+        reason_max = 512 - len(ret) - len(argument)
+        raise commands.BadArgument(f'reason is too long ({len(argument)}/{reason_max})')
+    return ret
 
 
 async def runchecks(bot, ctx, target):
@@ -33,8 +32,17 @@ async def runchecks(bot, ctx, target):
         return True
 
 
-async def kick(bot, ctx, member: discord.Member, reason: ActionReason = None    ):
+async def kick(bot, ctx, member: discord.Member, reason):
     if await runchecks(bot, ctx, member.id):
+        reason = await convert(ctx, reason)
         await member.kick(reason=reason)
         await ctx.send(embed=await MessagingUtils.embed_basic(ctx, f"Kicked member", f"{member} has been kicked!",
+                                                              Constants.commandSuccess, True))
+
+
+async def ban(bot, ctx, member: discord.Member, reason):
+    if await runchecks(bot, ctx, member.id):
+        reason = await convert(ctx, reason)
+        await member.ban(reason=reason)
+        await ctx.send(embed=await MessagingUtils.embed_basic(ctx, f"Banned member", f"{member} has been banned!",
                                                               Constants.commandSuccess, True))
