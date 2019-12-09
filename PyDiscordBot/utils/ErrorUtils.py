@@ -5,7 +5,7 @@ from aiohttp import ClientSession
 from discord.ext import commands
 
 from PyDiscordBot.misc import Constants
-from PyDiscordBot.utils import Messaging
+from PyDiscordBot.utils import MessagingUtils
 
 
 class ErrorUtils(commands.Cog):
@@ -34,10 +34,10 @@ class ErrorUtils(commands.Cog):
         async with ClientSession() as session:
             async with session.post('https://hasteb.in/documents', data=''.join(''.join(err))) as post:
                 return await ctx.send(
-                    embed=await Messaging.embed_basic(ctx, "There was an error while running the command!",
+                    embed=await MessagingUtils.embed_basic(ctx, "There was an error while running the command!",
                                                       f"Stack Trace: https://hasteb.in/" +
-                                                      (await post.json())['key'],
-                                                      Constants.commandError, False))
+                                                           (await post.json())['key'],
+                                                           Constants.commandError, False))
 
 
 def setup(bot):

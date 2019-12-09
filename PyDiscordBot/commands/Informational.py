@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from PyDiscordBot.misc import Constants
-from PyDiscordBot.utils import Messaging
+from PyDiscordBot.utils import MessagingUtils
 
 
 def converter(ctx):
@@ -19,7 +19,7 @@ class Informational(commands.Cog):
     async def userinfo(self, ctx, user: discord.User = None):
         if user is None:
             user = converter(ctx)
-        embed = await Messaging.embed_basic(ctx, f"{user}", "", Constants.commandInfo, True)
+        embed = await MessagingUtils.embed_basic(ctx, f"{user}", "", Constants.commandInfo, True)
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="User ID", value=user.id, inline=True)
         embed.add_field(name="User Created", value=user.created_at.date(), inline=True)
@@ -33,7 +33,8 @@ class Informational(commands.Cog):
     async def guildinfo(self, ctx, guild: discord.Guild = None):
         if guild is None:
             guild = converter(ctx)
-        embed = await Messaging.embed_basic(ctx, f"{guild.name}", "", Constants.commandInfo, True, f"ID: {guild.id}")
+        embed = await MessagingUtils.embed_basic(ctx, f"{guild.name}", "", Constants.commandInfo, True,
+                                                 f"ID: {guild.id}")
         embed.set_thumbnail(url=guild.icon_url)
         embed.add_field(name="Members", value=guild.member_count, inline=True)
         embed.add_field(name="Channels", value=len(guild.channels), inline=True)
