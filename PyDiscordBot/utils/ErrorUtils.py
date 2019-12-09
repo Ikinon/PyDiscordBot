@@ -1,6 +1,7 @@
 import sys
 import traceback
 
+import discord
 from aiohttp import ClientSession
 from discord.ext import commands
 
@@ -25,6 +26,16 @@ class ErrorUtils(commands.Cog):
         if isinstance(error, ignored):
             return
 
+        elif isinstance(error, discord.ext.commands.MissingPermissions):
+            return await ctx.send(embed=await MessagingUtils.embed_basic(ctx, "Missing Permissions",
+                                                                         f"You need the permission(s) {''.join(error.missing_perms)} for {ctx.command}!",
+                                                                         Constants.commandFail, True))
+
+        elif isinstance(error, discord.ext.commands.BotMissingPermissions):
+            return await ctx.send(embed=await MessagingUtils.embed_basic(ctx, "Missing Permissions",
+                                                                         f"I am missing the permission(s) {''.join(error.missing_perms)} for {ctx.command}!",
+                                                                         Constants.commandFail, True))
+
         elif isinstance(error, commands.DisabledCommand):
             return await ctx.send(f'{ctx.command} has been disabled.')
 
@@ -35,7 +46,7 @@ class ErrorUtils(commands.Cog):
             async with session.post('https://hasteb.in/documents', data=''.join(''.join(err))) as post:
                 return await ctx.send(
                     embed=await MessagingUtils.embed_basic(ctx, "There was an error while running the command!",
-                                                      f"Stack Trace: https://hasteb.in/" +
+                                                           f"Stack Trace: https://hasteb.in/" +
                                                            (await post.json())['key'],
                                                            Constants.commandError, False))
 

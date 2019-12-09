@@ -11,12 +11,14 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member, reason=None):
         await ModUtils.kick(self.bot, ctx, member, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, reason=None):
         await ModUtils.ban(self.bot, ctx, member, reason)
 
