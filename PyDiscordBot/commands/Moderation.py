@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from PyDiscordBot.utils import ModUtils, MessagingUtils
+from PyDiscordBot.utils import ModUtils
 
 
 class Moderation(commands.Cog):
@@ -9,6 +9,8 @@ class Moderation(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member, reason=None):
         await ModUtils.kick(self.bot, ctx, member, reason)
 
