@@ -24,7 +24,6 @@ class Informational(commands.Cog):
         embed.add_field(name="User ID", value=user.id, inline=True)
         embed.add_field(name="User Created", value=user.created_at.date(), inline=True)
         if user in self.bot.users:
-            user: discord.Member
             embed.add_field(name="Status", value=user.status, inline=True)
             embed.add_field(name="Joined At", value=user.joined_at.date(), inline=True)
         await ctx.send(embed=embed)
