@@ -2,6 +2,8 @@ import asyncio
 
 import discord
 
+from PyDiscordBot.misc import Constants
+
 
 async def convert(ctx):
     return f"Requested by {ctx.author}"
@@ -31,3 +33,8 @@ async def message_timechecked(bot, ctx, msg, timeout):
         return True
     except asyncio.TimeoutError:
         return False
+
+
+async def embed_commandFail(ctx, description):
+    return await ctx.send(
+        embed=await embed_basic(ctx, f"Failed to run {ctx.command}", description, Constants.commandFail, True))
