@@ -68,7 +68,6 @@ async def unban(ctx, user, reason):
 # TODO: Timed mute
 async def mute(bot, ctx, member, reason):
     if await runchecks(bot, ctx, member.id):
-        db = DataUtils.database().find(dict({'_id': ctx.guild.id}))
         reason = await convert(ctx, reason)
         embed = await MessagingUtils.embed_basic(ctx, "Muted Member", f"{member} has been muted!",
                                                  Constants.commandSuccess, True)
