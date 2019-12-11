@@ -29,6 +29,13 @@ class Moderation(commands.Cog):
     async def unban(self, ctx, user, reason=None):
         await ModUtils.unban(ctx, user, reason)
 
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def mute(self, ctx, member: discord.Member, reason=None):
+        await ModUtils.mute(self.bot, ctx, member, reason)
+
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
