@@ -26,6 +26,13 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
+    async def softban(self, ctx, member: discord.Member, reason=None):
+        await ModUtils.softban(self.bot, ctx, member, reason)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(ban_members=True)
     async def unban(self, ctx, user, reason=None):
         await ModUtils.unban(ctx, user, reason)
 

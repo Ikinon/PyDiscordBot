@@ -52,6 +52,14 @@ async def ban(bot, ctx, member: discord.Member, reason):
                                                               Constants.commandSuccess, True))
 
 
+async def softban(bot, ctx, member: discord.Member, reason):
+    if await runchecks(bot, ctx, member.id):
+        reason = await convert(ctx, reason)
+        await member.ban(reason=reason), member.unban(reason=reason)
+        await ctx.send(
+            embed=await MessagingUtils.embed_basic(ctx, f"Soft-banned member", f"{member} has been soft-banned!"))
+
+
 async def unban(ctx, user, reason):
     bans = await ctx.guild.bans()
     reason = await convert(ctx, reason)
