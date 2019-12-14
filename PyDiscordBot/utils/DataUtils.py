@@ -1,7 +1,6 @@
 import json
 
 import pymongo
-from discord.ext import commands
 
 with open("config.json") as cfg:
     config = json.load(cfg)
@@ -17,3 +16,8 @@ def config(data):
 
 def database():
     return guildi
+
+
+def guilddata(guildid):
+    for x in database().find(dict({'_id': guildid})):
+        return x

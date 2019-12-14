@@ -50,13 +50,11 @@ async def modlog(ctx, target, reason):
 
 
 async def check_modlog_status(ctx):
-    for x in DataUtils.database().find(dict({'_id': ctx.guild.id})): x
-    if x.get('modlog_status') == "NONE":
+    modlog_status = DataUtils.guilddata(ctx.guild.id).get('modlog_status')
+    if modlog_status == "NONE":
         return False
-    elif x.get('modlog_status'):
-        temp = [x.get("modlog_channel")]
-        temp.append(x.get("modlog_status"))
-        return temp
+    elif modlog_status:
+        return [DataUtils.guilddata(ctx.guild.id).get('modlog_channel'), modlog_status]
 
 
 async def create_role(ctx, name, permissions: discord.permissions, reason=None):
@@ -109,9 +107,8 @@ async def mute(bot, ctx, member, reason):
         reason = await convert(ctx, reason)
         embed = await MessagingUtils.embed_basic(ctx, "Muted Member", f"{member} has been muted!",
                                                  Constants.commandSuccess, True)
-        for x in DataUtils.database().find(): x
         try:
-            role = discord.utils.get(ctx.guild.roles, id=int(x.get('mute_role')))
+            role = discord.utils.get(ctx.guild.roles, id=int(DataUtils.guilddata(ctx.guild.id).get('mute_role')))
             if role is None: raise AttributeError
         except AttributeError:
             if ctx.guild.me.guild_permissions.manage_channels is False:
@@ -143,10 +140,9 @@ async def mute(bot, ctx, member, reason):
 async def warn(bot, ctx, member, reason):
     if await runchecks(bot, ctx, member.id):
         reason = await convert(ctx, reason)
+        warnings = []
         try:
-            for x in DataUtils.database().find(dict({'_id': ctx.guild.id})):
-                x
-            warnings = x.get('warnings').get(str(member.id))
+            warnings = DataUtils.guilddata(ctx.guild.id).get('warnings').get(str(member.id))
         except AttributeError:
             DataUtils.database().update_one(dict({'_id': ctx.guild.id}),
                                             dict({'$set': {'warnings': {str(member.id): [reason]}}}))
@@ -160,12 +156,12 @@ async def warn(bot, ctx, member, reason):
         embed.add_field(name="Reason", value=reason)
         embed.add_field(name="Total Warnings", value=len(warnings))
         await ctx.send(embed=embed)
+        await modlog(ctx, member, reason)
 
 
-async def warnings(bot, ctx, member):
+async def memberwarnings(bot, ctx, member):
     if await runchecks(bot, ctx, member.id):
-        for x in DataUtils.database().find(dict({'_id': ctx.guild.id})): x
-        warnings = '\n'.join(x.get('warnings').get(str(member.id)))
+        warnings = '\n'.join(DataUtils.guilddata(ctx.guild.id).get('warnings').get(str(member.id)))
         await ctx.send(
-            embed=await MessagingUtils.embed_basic(ctx, f"Warnings for {member.name}", warnings, Constants.commandInfo,
+            embed=await MessagingUtils.embed_basic(ctx, f"Warnings for {member}", warnings, Constants.commandInfo,
                                                    True))

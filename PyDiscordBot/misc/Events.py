@@ -4,8 +4,7 @@ from PyDiscordBot.utils import DataUtils
 
 
 async def after_invoke(ctx):
-    for x in DataUtils.database().find(dict({'_id': ctx.guild.id})): x
-    if bool(x.get('deleteCommand')) is True:
+    if DataUtils.guilddata(ctx.guild.id).get('deleteCommand') is True:
         try:
             await ctx.message.delete()
         except:
