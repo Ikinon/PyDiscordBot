@@ -43,6 +43,18 @@ class Moderation(commands.Cog):
     async def mute(self, ctx, member: discord.Member, reason=None):
         await ModUtils.mute(self.bot, ctx, member, reason)
 
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
+    async def warn(self, ctx, member: discord.Member, reason=None):
+        await ModUtils.warn(self.bot, ctx, member, reason)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
+    async def warnings(self, ctx, member: discord.Member):
+        await ModUtils.warnings(self.bot, ctx, member)
+
 
 def setup(bot):
     bot.add_cog(Moderation(bot))

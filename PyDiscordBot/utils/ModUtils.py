@@ -137,3 +137,35 @@ async def mute(bot, ctx, member, reason):
                 embed.add_field(name="Voice Mute", value=f"{member} has also been muted in voice.")
         await ctx.send(embed=embed)
         await modlog(ctx, member, reason)
+
+
+# TODO: Warnings: Allow removing warnings
+async def warn(bot, ctx, member, reason):
+    if await runchecks(bot, ctx, member.id):
+        reason = await convert(ctx, reason)
+        try:
+            for x in DataUtils.database().find(dict({'_id': ctx.guild.id})):
+                x
+            warnings = x.get('warnings').get(str(member.id))
+        except AttributeError:
+            DataUtils.database().update_one(dict({'_id': ctx.guild.id}),
+                                            dict({'$set': {'warnings': {str(member.id): [reason]}}}))
+        else:
+            warnings.append(reason)
+            DataUtils.database().update_many(dict({'_id': ctx.guild.id}),
+                                             dict({'$set': {'warnings': {str(member.id): warnings}}}))
+
+        embed = await MessagingUtils.embed_basic(ctx, "Warned user", f"{member} has been warned",
+                                                 Constants.commandSuccess, True)
+        embed.add_field(name="Reason", value=reason)
+        embed.add_field(name="Total Warnings", value=len(warnings))
+        await ctx.send(embed=embed)
+
+
+async def warnings(bot, ctx, member):
+    if await runchecks(bot, ctx, member.id):
+        for x in DataUtils.database().find(dict({'_id': ctx.guild.id})): x
+        warnings = '\n'.join(x.get('warnings').get(str(member.id)))
+        await ctx.send(
+            embed=await MessagingUtils.embed_basic(ctx, f"Warnings for {member.name}", warnings, Constants.commandInfo,
+                                                   True))
