@@ -53,7 +53,7 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     async def warnings(self, ctx, member: discord.Member):
-        await ModUtils.warnings(self.bot, ctx, member)
+        await ModUtils.memberwarnings(self.bot, ctx, member)
 
 
 def setup(bot):
