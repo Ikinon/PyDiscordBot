@@ -65,8 +65,7 @@ async def kick(bot, ctx, member: discord.Member, reason):
     if await runchecks(bot, ctx, member.id):
         reason = await convert(ctx, reason)
         await member.kick(reason=reason)
-        await ctx.send(embed=await MessagingUtils.embed_basic(ctx, f"Kicked member", f"{member} has been kicked!",
-                                                              Constants.commandSuccess, True))
+        await MessagingUtils.send_embed_commandSuccess(ctx, f"Kicked member", f"{member} has been kicked!")
         await modlog(ctx, member, reason)
 
 
@@ -74,8 +73,7 @@ async def ban(bot, ctx, member: discord.Member, reason):
     if await runchecks(bot, ctx, member.id):
         reason = await convert(ctx, reason)
         await member.ban(reason=reason)
-        await ctx.send(embed=await MessagingUtils.embed_basic(ctx, f"Banned member", f"{member} has been banned!",
-                                                              Constants.commandSuccess, True))
+        await MessagingUtils.send_embed_commandSuccess(ctx, "Banned Member", f"{member} has been banned")
         await modlog(ctx, member, reason)
 
 
@@ -83,9 +81,7 @@ async def softban(bot, ctx, member: discord.Member, reason):
     if await runchecks(bot, ctx, member.id):
         reason = await convert(ctx, reason)
         await member.ban(reason=reason), await member.unban(reason=reason)
-        await ctx.send(
-            embed=await MessagingUtils.embed_basic(ctx, f"Soft-banned member", f"{member} has been soft-banned!",
-                                                   Constants.commandSuccess, True))
+        await MessagingUtils.send_embed_commandSuccess(ctx, f"Soft-banned member", f"{member} has been soft-banned!")
         await modlog(ctx, member, reason)
 
 
@@ -151,7 +147,7 @@ async def warn(bot, ctx, member, reason):
             DataUtils.database().update_many(dict({'_id': ctx.guild.id}),
                                              dict({'$set': {'warnings': {str(member.id): warnings}}}))
 
-        embed = await MessagingUtils.embed_basic(ctx, "Warned user", f"{member} has been warned",
+        embed = await MessagingUtils.embed_basic(ctx, "Warned member", f"{member} has been warned",
                                                  Constants.commandSuccess, True)
         embed.add_field(name="Reason", value=reason)
         embed.add_field(name="Total Warnings", value=len(warnings))

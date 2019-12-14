@@ -35,6 +35,11 @@ async def message_timechecked(bot, ctx, msg, timeout):
         return False
 
 
-async def embed_commandFail(ctx, description):
+async def send_embed_commandFail(ctx, description):
     return await ctx.send(
         embed=await embed_basic(ctx, f"Failed to run {ctx.command}", description, Constants.commandFail, True))
+
+
+async def send_embed_commandSuccess(ctx, title, description):
+    return await ctx.send(
+        embed=await embed_basic(ctx, title, description, Constants.commandSuccess, True))
