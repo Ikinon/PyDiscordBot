@@ -35,11 +35,41 @@ async def message_timechecked(bot, ctx, msg, timeout):
         return False
 
 
-async def send_embed_commandFail(ctx, description):
-    return await ctx.send(
-        embed=await embed_basic(ctx, f"Failed to run {ctx.command}", description, Constants.commandFail, True))
+async def embed_commandFail(ctx, title, description):
+    return await embed_basic(ctx, title, description, Constants.commandFail, True)
+
+
+async def embed_commandSuccess(ctx, title, description):
+    return await embed_basic(ctx, title, description, Constants.commandSuccess, True)
+
+
+async def embed_commandInfo(ctx, title, description):
+    return await embed_basic(ctx, title, description, Constants.commandInfo, True)
+
+
+async def embed_commandWarning(ctx, title, description):
+    return await embed_basic(ctx, title, description, Constants.commandWarning, True)
+
+
+async def embed_commandError(ctx, title, description):
+    return await embed_basic(ctx, title, description, Constants.commandError, True)
+
+
+async def send_embed_commandFail(ctx, title, description):
+    return await ctx.send(embed=await embed_commandFail(ctx, title, description))
 
 
 async def send_embed_commandSuccess(ctx, title, description):
-    return await ctx.send(
-        embed=await embed_basic(ctx, title, description, Constants.commandSuccess, True))
+    return await ctx.send(embed=await embed_commandSuccess(ctx, title, description))
+
+
+async def send_embed_commandInfo(ctx, title, description):
+    return await ctx.send(embed=await embed_commandInfo(ctx, title, description))
+
+
+async def send_embed_commandWarning(ctx, title, description):
+    return await ctx.send(embed=await embed_commandWarning(ctx, title, description))
+
+
+async def send_embed_commandError(ctx, title, description):
+    return await ctx.send(embed=await embed_commandError(ctx, title, description))
