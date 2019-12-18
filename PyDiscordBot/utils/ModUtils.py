@@ -5,7 +5,8 @@ from PyDiscordBot.misc import Constants
 from PyDiscordBot.utils import MessagingUtils, DataUtils
 
 
-class Utils:
+class Utils():
+
     async def __convert(self, ctx, argument=None):
         ret = f'{ctx.author}: {argument}'
 
@@ -40,18 +41,18 @@ class Utils:
                                                      Constants.commandInfo, False)
             embed.add_field(name="Channel", value=f"{ctx.channel.name} ({ctx.channel.id})")
             embed.add_field(name="Reason", value=reason)
-            self.__modlog = await self.__modlog_status(ctx)
-            channel = discord.utils.get(ctx.guild.channels, id=int(self.__modlog[0]))
-            if self.__modlog[1] == "ALL":
+            modlog = await self.__modlog_status(ctx)
+            channel = discord.utils.get(ctx.guild.channels, id=int(modlog[0]))
+            if modlog[1] == "ALL":
                 await channel.send(embed=embed)
-            if str(ctx.command) in self.__modlog[1]:
+            if str(ctx.command) in modlog[1]:
                 await channel.send(embed=embed)
 
     async def __modlog_status(self, ctx):
-        self.__modlog_status = DataUtils.guilddata(ctx.guild.id).get('self.__modlog_status')
-        if self.__modlog_status == "NONE":
+        modlog_status = DataUtils.guilddata(ctx.guild.id).get('self.__modlog_status')
+        if modlog_status == "NONE":
             return False
-        elif self.__modlog_status:
+        elif modlog_status:
             return [DataUtils.guilddata(ctx.guild.id).get('self.__modlog_channel'), self.__modlog_status]
 
     async def __create_role(self, ctx, name, permissions: discord.permissions, reason=None):
@@ -117,7 +118,6 @@ class Utils:
                 if failed != 0 & len(ctx.guild.channels) != failed:
                     embed.add_field(name="Permission Error",
                                     value=f"Failed to crate channel permission entries for {failed} channel(s). Please check permissions.")
-            await ctx.send(str(member.roles))
             if role not in member.roles:
                 await member.add_roles(role, reason=reason)
             if role in member.roles:
