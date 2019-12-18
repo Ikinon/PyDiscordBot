@@ -16,7 +16,7 @@ class Utils():
         return ret
 
     async def __runchecks(self, bot, ctx, target):
-        embed = await MessagingUtils.embed_basic(ctx, "", "", Constants.commandWarning, True)
+        embed = await MessagingUtils.embed_commandWarning(ctx, "", "")
         if target is None:
             embed.description = "I cannot find that user!"
             await ctx.send(embed=embed)
@@ -86,17 +86,14 @@ class Utils():
         for ban in bans:
             if ban.user.name == str(user) or str(ban.user.id) == str(user):
                 await ctx.guild.unban(ban.user, reason=reason)
-                await ctx.send(
-                    embed=await MessagingUtils.embed_basic(ctx, f"Unbanned User", f"{ban.user} has been unbanned",
-                                                           Constants.commandSuccess, True))
+                await MessagingUtils.send_embed_commandSuccess(ctx, f"Unbanned User", f"{ban.user} has been unbanned")
         await self.__modlog(ctx, user, reason)
 
     # TODO: Timed mute
     async def mute(self, bot, ctx, member, reason):
         if await self.__runchecks(bot, ctx, member.id):
             reason = await self.__convert(ctx, reason)
-            embed = await MessagingUtils.embed_basic(ctx, "Muted Member", f"{member} has been muted!",
-                                                     Constants.commandSuccess, True)
+            embed = await MessagingUtils.embed_commandSuccess(ctx, "Muted Member", f"{member} has been muted!")
             try:
                 role = discord.utils.get(ctx.guild.roles, id=int(DataUtils.guilddata(ctx.guild.id).get('mute_role')))
                 if role is None: raise AttributeError
@@ -146,8 +143,7 @@ class Utils():
                 DataUtils.database().update_many(dict({'_id': ctx.guild.id}),
                                                  dict({'$set': {'warnings': {str(member.id): warnings}}}))
 
-            embed = await MessagingUtils.embed_basic(ctx, "Warned member", f"{member} has been warned",
-                                                     Constants.commandSuccess, True)
+            embed = await MessagingUtils.embed_commandSuccess(ctx, "Warned member", f"{member} has been warned")
             embed.add_field(name="Reason", value=reason)
             embed.add_field(name="Total Warnings", value=len(warnings))
             await ctx.send(embed=embed)
@@ -156,6 +152,4 @@ class Utils():
     async def memberwarnings(self, bot, ctx, member):
         if await self.__runchecks(bot, ctx, member.id):
             warnings = '\n'.join(DataUtils.guilddata(ctx.guild.id).get('warnings').get(str(member.id)))
-            await ctx.send(
-                embed=await MessagingUtils.embed_basic(ctx, f"Warnings for {member}", warnings, Constants.commandInfo,
-                                                       True))
+            await MessagingUtils.send_embed_commandInfo(ctx, f"Warnings for {member}", warnings)

@@ -5,7 +5,6 @@ import discord
 from aiohttp import ClientSession
 from discord.ext import commands
 
-from PyDiscordBot.misc import Constants
 from PyDiscordBot.utils import MessagingUtils
 
 
@@ -27,14 +26,12 @@ class ErrorUtils(commands.Cog):
             return
 
         elif isinstance(error, discord.ext.commands.MissingPermissions):
-            return await ctx.send(embed=await MessagingUtils.embed_basic(ctx, "Missing Permissions",
-                                                                         f"You need the permission(s) {''.join(error.missing_perms)} for {ctx.command}!",
-                                                                         Constants.commandFail, True))
+            return await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
+                                                               f"You need the permission(s) {''.join(error.missing_perms)} for {ctx.command}!")
 
         elif isinstance(error, discord.ext.commands.BotMissingPermissions):
-            return await ctx.send(embed=await MessagingUtils.embed_basic(ctx, "Missing Permissions",
-                                                                         f"I am missing the permission(s) {''.join(error.missing_perms)} for {ctx.command}!",
-                                                                         Constants.commandFail, True))
+            return await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
+                                                               f"I am missing the permission(s) {''.join(error.missing_perms)} for {ctx.command}!")
 
         elif isinstance(error, commands.DisabledCommand):
             return await ctx.send(f'{ctx.command} has been disabled.')
@@ -44,11 +41,9 @@ class ErrorUtils(commands.Cog):
         err = traceback.format_exception(type(error), error, error.__traceback__)
         async with ClientSession() as session:
             async with session.post('https://hasteb.in/documents', data=''.join(''.join(err))) as post:
-                return await ctx.send(
-                    embed=await MessagingUtils.embed_basic(ctx, "There was an error while running the command!",
-                                                           f"Stack Trace: https://hasteb.in/" +
-                                                           (await post.json())['key'],
-                                                           Constants.commandError, False))
+                return MessagingUtils.send_embed_commandError(ctx, "There was an error while running the command!",
+                                                              f"Stack Trace: https://hasteb.in/" +
+                                                              (await post.json())['key'])
 
 
 def setup(bot):

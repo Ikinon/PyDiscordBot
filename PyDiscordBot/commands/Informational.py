@@ -18,7 +18,7 @@ class Informational(commands.Cog):
     async def userinfo(self, ctx, user: discord.User = None):
         if user is None:
             user = self.__converter(ctx)
-        embed = await MessagingUtils.embed_basic(ctx, f"{user}", "", Constants.commandInfo, True)
+        embed = await MessagingUtils.embed_commandInfo(ctx, f"{user}", "")
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="User ID", value=user.id, inline=True)
         embed.add_field(name="User Created", value=user.created_at.date(), inline=True)
