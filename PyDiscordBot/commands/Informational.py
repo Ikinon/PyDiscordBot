@@ -5,12 +5,11 @@ from PyDiscordBot.misc import Constants
 from PyDiscordBot.utils import MessagingUtils
 
 
-def converter(ctx):
-    if str(ctx.command) == 'userinfo': return ctx.author
-    if str(ctx.command) == 'guildinfo': return ctx.guild
-
-
 class Informational(commands.Cog):
+
+    def __converter(self, ctx):
+        if str(ctx.command) == 'userinfo': return ctx.author
+        if str(ctx.command) == 'guildinfo': return ctx.guild
 
     def __init__(self, bot):
         self.bot = bot
@@ -18,7 +17,7 @@ class Informational(commands.Cog):
     @commands.command()
     async def userinfo(self, ctx, user: discord.User = None):
         if user is None:
-            user = converter(ctx)
+            user = self.__converter(ctx)
         embed = await MessagingUtils.embed_basic(ctx, f"{user}", "", Constants.commandInfo, True)
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="User ID", value=user.id, inline=True)
@@ -31,7 +30,7 @@ class Informational(commands.Cog):
     @commands.command(name="guildinfo", aliases=["serverinfo"])
     async def guildinfo(self, ctx, guild: discord.Guild = None):
         if guild is None:
-            guild = converter(ctx)
+            guild = self.__converter(ctx)
         embed = await MessagingUtils.embed_basic(ctx, f"{guild.name}", "", Constants.commandInfo, True,
                                                  f"ID: {guild.id}")
         embed.set_thumbnail(url=guild.icon_url)
