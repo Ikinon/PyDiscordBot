@@ -41,7 +41,7 @@ class ErrorUtils(commands.Cog):
         err = traceback.format_exception(type(error), error, error.__traceback__)
         async with ClientSession() as session:
             async with session.post('https://hasteb.in/documents', data=''.join(''.join(err))) as post:
-                return MessagingUtils.send_embed_commandError(ctx, "There was an error while running the command!",
+                return await MessagingUtils.send_embed_commandError(ctx, "There was an error while running the command!",
                                                               f"Stack Trace: https://hasteb.in/" +
                                                               (await post.json())['key'])
 
