@@ -33,30 +33,36 @@ class Utils():
             return True
 
     async def __modlog(self, ctx, target, reason):
-        if await self.__modlog_status(ctx) is False:
+        if await self.modlog_status(ctx) is False:
             return
-        elif await self.__modlog_status(ctx):
+        elif await self.modlog_status(ctx):
             embed = await MessagingUtils.embed_basic(ctx, f"{ctx.command}'ed member",
                                                      f"{ctx.author.mention} {ctx.command}ed member {target}",
                                                      Constants.commandInfo, False)
             embed.add_field(name="Channel", value=f"{ctx.channel.name} ({ctx.channel.id})")
             embed.add_field(name="Reason", value=reason)
-            modlog = await self.__modlog_status(ctx)
+            modlog = await self.modlog_status(ctx)
             channel = discord.utils.get(ctx.guild.channels, id=int(modlog[0]))
             if modlog[1] == "ALL":
                 await channel.send(embed=embed)
             if str(ctx.command) in modlog[1]:
                 await channel.send(embed=embed)
 
-    async def __modlog_status(self, ctx):
-        modlog_status = DataUtils.guilddata(ctx.guild.id).get('self.__modlog_status')
+    async def __create_role(self, ctx, name, permissions: discord.permissions, reason=None):
+        return await ctx.guild.__create_role(name=name, permissions=permissions, reason=reason)
+
+    async def modlog_status(self, ctx):
+        modlog_status = DataUtils.guilddata(ctx.guild.id).get('modlog_status')
         if modlog_status == "NONE":
             return False
         elif modlog_status:
-            return [DataUtils.guilddata(ctx.guild.id).get('self.__modlog_channel'), self.__modlog_status]
+            return [DataUtils.guilddata(ctx.guild.id).get('modlog_channel'), modlog_status]
 
-    async def __create_role(self, ctx, name, permissions: discord.permissions, reason=None):
-        return await ctx.guild.__create_role(name=name, permissions=permissions, reason=reason)
+    async def update_modlog_status(self, ctx, value):
+        DataUtils.database().update_one(dict({'_id': ctx.guild.id}), dict({'$set': {"modlog_status": value}}))
+
+    async def update_modlog_channel(self, ctx, value: int):
+        DataUtils.database().update_one(dict({'_id': ctx.guild.id}), dict({'$set': {"modlog_channel": value}}))
 
     async def kick(self, bot, ctx, member: discord.Member, reason):
         if await self.__runchecks(bot, ctx, member.id):
