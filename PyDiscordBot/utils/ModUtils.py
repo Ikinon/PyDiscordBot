@@ -49,7 +49,7 @@ class Utils():
                 await channel.send(embed=embed)
 
     async def __create_role(self, ctx, name, permissions: discord.permissions, reason=None):
-        return await ctx.guild.__create_role(name=name, permissions=permissions, reason=reason)
+        return await ctx.guild.create_role(name=name, permissions=permissions, reason=reason)
 
     async def modlog_status(self, ctx):
         modlog_status = DataUtils.guilddata(ctx.guild.id).get('modlog_status')
