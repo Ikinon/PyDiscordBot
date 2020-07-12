@@ -48,6 +48,14 @@ class Utils():
             if str(ctx.command) in modlog[1]:
                 await channel.send(embed=embed)
 
+    async def __mod_action_complete(self, ctx, target, reason, embed: discord.Embed = None):
+        await self.__modlog(ctx, target, reason)
+        if not embed:
+            await MessagingUtils.send_embed_commandSuccess(ctx, f"{str(ctx.command).title()} User",
+                                                           f"Action taken against {target}")
+        elif embed:
+            await ctx.send(embed=embed)
+
     async def __create_role(self, ctx, name, permissions: discord.permissions, reason=None):
         return await ctx.guild.create_role(name=name, permissions=permissions, reason=reason)
 
@@ -68,15 +76,13 @@ class Utils():
         if await self.__runchecks(bot, ctx, member.id):
             reason = await self.__convert(ctx, reason)
             await member.kick(reason=reason)
-            await MessagingUtils.send_embed_commandSuccess(ctx, f"Kicked member", f"{member} has been kicked!")
-            await self.__modlog(ctx, member, reason)
+            await self.__mod_action_complete(ctx, member, reason)
 
     async def ban(self, bot, ctx, member: discord.Member, reason):
         if await self.__runchecks(bot, ctx, member.id):
             reason = await self.__convert(ctx, reason)
             await member.ban(reason=reason)
-            await MessagingUtils.send_embed_commandSuccess(ctx, "Banned Member", f"{member} has been banned")
-            await self.__modlog(ctx, member, reason)
+            await self.__mod_action_complete(ctx, member, reason)
 
     async def softban(self, bot, ctx, member: discord.Member, reason):
         if await self.__runchecks(bot, ctx, member.id):
@@ -92,14 +98,13 @@ class Utils():
         for ban in bans:
             if ban.user.name == str(user) or str(ban.user.id) == str(user):
                 await ctx.guild.unban(ban.user, reason=reason)
-                await MessagingUtils.send_embed_commandSuccess(ctx, f"Unbanned User", f"{ban.user} has been unbanned")
-        await self.__modlog(ctx, user, reason)
+        await self.__mod_action_complete(ctx, user, reason)
 
     # TODO: Timed mute
     async def mute(self, bot, ctx, member, reason):
         if await self.__runchecks(bot, ctx, member.id):
             reason = await self.__convert(ctx, reason)
-            embed = await MessagingUtils.embed_commandSuccess(ctx, "Muted Member", f"{member} has been muted!")
+            embed = await MessagingUtils.embed_commandSuccess(ctx, "Muted User", f"{member} has been muted!")
             try:
                 role = discord.utils.get(ctx.guild.roles, id=int(DataUtils.guilddata(ctx.guild.id).get('mute_role')))
                 if role is None: raise AttributeError
@@ -125,14 +130,13 @@ class Utils():
                 await member.add_roles(role, reason=reason)
             if role in member.roles:
                 await member.remove_roles(role, reason=reason)
-                embed.description = f"{member} has be un-muted"
+                embed.description = f"{member} has been muted"
                 ctx.command = "un-mute"
             if isinstance(member.voice, discord.member.VoiceState):
                 if member.voice.channel.permissions_for(ctx.guild.me).mute_members is True:
                     await member.edit(mute=True)
                     embed.add_field(name="Voice Mute", value=f"{member} has also been muted in voice.")
-            await ctx.send(embed=embed)
-            await self.__modlog(ctx, member, reason)
+            await self.__mod_action_complete(ctx, member, reason, embed)
 
     # TODO: Warnings: Allow removing warnings
     async def warn(self, bot, ctx, member, reason):
@@ -149,11 +153,10 @@ class Utils():
                 DataUtils.database().update_many(dict({'_id': ctx.guild.id}),
                                                  dict({'$set': {'warnings': {str(member.id): warnings}}}))
 
-            embed = await MessagingUtils.embed_commandSuccess(ctx, "Warned member", f"{member} has been warned")
+            embed = await MessagingUtils.embed_commandSuccess(ctx, "Warn User", f"{member} has been warned")
             embed.add_field(name="Reason", value=reason)
             embed.add_field(name="Total Warnings", value=len(warnings))
-            await ctx.send(embed=embed)
-            await self.__modlog(ctx, member, reason)
+            await self.__mod_action_complete(ctx, member, reason, embed)
 
     async def memberwarnings(self, bot, ctx, member):
         if await self.__runchecks(bot, ctx, member.id):
