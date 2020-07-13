@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from PyDiscordBot.utils import DataUtils, MessagingUtils, ModUtils, DataUtils
+from PyDiscordBot.utils import MessagingUtils, ModUtils, DataUtils
 
 
 class Management(commands.Cog):
