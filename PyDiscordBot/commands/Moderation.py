@@ -13,14 +13,14 @@ class Moderation(commands.Cog):
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member, reason=None):
-        await ModUtils.Utils().kick(self.bot, ctx, member, reason)
+        await ModUtils.Utils(self.bot, ctx).kick(member, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, reason=None):
-        await ModUtils.Utils().ban(self.bot, ctx, member, reason)
+        await ModUtils.Utils(self.bot, ctx).ban(member, reason)
 
     @ban.error
     async def ban_error(self, ctx, error):
@@ -30,40 +30,40 @@ class Moderation(commands.Cog):
                                                               f"{args[1]} was not found in guild, do you want to try "
                                                               f"forceban?")
             if await MessagingUtils.message_timechecked(self.bot, ctx, msg, 10):
-                await ModUtils.Utils().forceban(ctx, self.bot, args[1], args[2])
+                await ModUtils.Utils(self.bot, ctx).forceban(args[1], args[2])
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
     async def softban(self, ctx, member: discord.Member, reason=None):
-        await ModUtils.Utils().softban(self.bot, ctx, member, reason)
+        await ModUtils.Utils(self.bot, ctx).softban(member, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
     async def unban(self, ctx, user, reason=None):
-        await ModUtils.Utils.unban(ctx, user, reason)
+        await ModUtils.Utils(self.bot, ctx).unban(user, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(manage_roles=True)
     async def mute(self, ctx, member: discord.Member, reason=None):
-        await ModUtils.Utils().mute(self.bot, ctx, member, reason)
+        await ModUtils.Utils(self.bot, ctx).mute(member, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     async def warn(self, ctx, member: discord.Member, reason=None):
-        await ModUtils.Utils().warn(self.bot, ctx, member, reason)
+        await ModUtils.Utils(self.bot, ctx).warn(member, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     async def warnings(self, ctx, member: discord.Member):
-        await ModUtils.Utils().memberwarnings(self.bot, ctx, member)
+        await ModUtils.Utils(self.bot, ctx).memberwarnings(member)
 
 
 def setup(bot):
