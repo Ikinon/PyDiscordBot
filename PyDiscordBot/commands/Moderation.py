@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from PyDiscordBot.utils import ModUtils
+from PyDiscordBot.utils import ModUtils, MessagingUtils
 
 
 class Moderation(commands.Cog):
@@ -21,6 +21,16 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, reason=None):
         await ModUtils.Utils().ban(self.bot, ctx, member, reason)
+
+    @ban.error
+    async def ban_error(self, ctx, error):
+        if isinstance(error, commands.UserInputError):
+            args = ctx.message.content.split()
+            msg = await MessagingUtils.send_embed_commandInfo(ctx, "Ban Fail",
+                                                              f"{args[1]} was not found in guild, do you want to try "
+                                                              f"forceban?")
+            if await MessagingUtils.message_timechecked(self.bot, ctx, msg, 10):
+                await ModUtils.Utils().forceban(ctx, self.bot, args[1], args[2])
 
     @commands.command()
     @commands.guild_only()

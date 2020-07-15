@@ -6,7 +6,7 @@ from PyDiscordBot.utils import MessagingUtils, DataUtils
 
 
 class Utils():
-
+    
     async def __convert(self, ctx, argument=None):
         ret = f'{ctx.author}: {argument}'
 
@@ -91,6 +91,12 @@ class Utils():
             await MessagingUtils.send_embed_commandSuccess(ctx, f"Soft-banned member",
                                                            f"{member} has been soft-banned!")
             await self.__modlog(ctx, member, reason)
+
+    async def forceban(self, ctx, bot, user, reason):
+        user = await bot.fetch_user(user)
+        if await self.__runchecks(bot, ctx, user.id):
+            await ctx.guild.ban(user, reason=await self.__convert(ctx, reason))
+            await self.__mod_action_complete(ctx, user, reason)
 
     async def unban(self, ctx, user, reason):
         bans = await ctx.guild.bans()
