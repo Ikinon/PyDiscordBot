@@ -11,7 +11,7 @@ class Utils():
         self.ctx = ctx
         self.bot = bot
 
-    async def __convert(self, argument=None):
+    async def reason_convert(self, argument=None):
         ret = f'{self.ctx.author}: {argument}'
 
         if len(ret) > 512:
@@ -76,48 +76,49 @@ class Utils():
     async def update_modlog_channel(self, value: int):
         DataUtils.database().update_one(dict({'_id': self.ctx.guild.id}), dict({'$set': {"modlog_channel": value}}))
 
-    async def kick(self, member: discord.Member, reason):
+    async def kick(self, member: discord.Member, reason=None):
         if await self.__runchecks(member.id):
-            reason = await self.__convert(reason)
+            reason = await self.reason_convert(reason)
             await member.kick(reason=reason)
             await self.__mod_action_complete(member, reason)
 
-    async def ban(self, member: discord.Member, reason):
+    async def ban(self, member: discord.Member, reason=None):
         if await self.__runchecks(member.id):
-            reason = await self.__convert(reason)
+            reason = await self.reason_convert(reason)
             await member.ban(reason=reason)
             await self.__mod_action_complete(member, reason)
 
-    async def softban(self, member: discord.Member, reason):
+    async def softban(self, member: discord.Member, reason=None):
         if await self.__runchecks(member.id):
-            reason = await self.__convert(reason)
+            reason = await self.reason_convert(reason)
             await member.ban(reason=reason), await member.unban(reason=reason)
             await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Soft-banned member",
                                                            f"{member} has been soft-banned!")
             await self.__modlog(member, reason)
 
-    async def forceban(self, user, reason):
+    async def forceban(self, user, reason=None):
         user = await self.bot.fetch_user(user)
+        reason = await self.reason_convert(reason)
         if await self.__runchecks(user.id):
-            await self.ctx.guild.ban(user, reason=await self.__convert(reason))
+            await self.ctx.guild.ban(user, reason=reason)
             await self.__mod_action_complete(user, reason)
 
-    async def unban(self, user, reason):
+    async def unban(self, user, reason=None):
         bans = await self.ctx.guild.bans()
-        reason = await self.__convert(reason)
+        reason = await self.reason_convert(reason)
         for ban in bans:
             if ban.user.name == str(user) or str(ban.user.id) == str(user):
                 await self.ctx.guild.unban(ban.user, reason=reason)
         await self.__mod_action_complete(user, reason)
 
-    # TODO: Timed mute
+    # TODO: Timed mute, Voice Mute
+    # TODO: BUG: This doesn't work when the member in in a voice chat?!
     async def mute(self, member, reason):
         if await self.__runchecks(member.id):
-            reason = await self.__convert(reason)
-            embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Muted User", f"{member} has been muted!")
+            reason = await self.reason_convert(reason)
+            embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Muted Member", f"{member} has been muted!")
             try:
-                role = discord.utils.get(self.ctx.guild.roles,
-                                         id=int(DataUtils.guilddata(self.ctx.guild.id).get('mute_role')))
+                role = discord.utils.get(self.ctx.guild.roles, id=int(DataUtils.guilddata(self.ctx.guild.id).get('mute_role')))
                 if role is None: raise AttributeError
             except AttributeError:
                 if self.ctx.guild.me.guild_permissions.manage_channels is False:
@@ -141,18 +142,15 @@ class Utils():
                 await member.add_roles(role, reason=reason)
             if role in member.roles:
                 await member.remove_roles(role, reason=reason)
-                embed.description = f"{member} has been muted"
+                embed.description = f"{member} has been un-muted"
+                embed.title="Un-Muted Member"
                 self.ctx.command = "un-mute"
-            if isinstance(member.voice, discord.member.VoiceState):
-                if member.voice.channel.permissions_for(self.ctx.guild.me).mute_members is True:
-                    await member.edit(mute=True)
-                    embed.add_field(name="Voice Mute", value=f"{member} has also been muted in voice.")
             await self.__mod_action_complete(member, reason, embed)
 
-    # TODO: Warnings: Allow removing warnings
-    async def warn(self, member, reason):
+    # TODO: Allow removing warnings
+    async def warn(self, member, reason=None):
         if await self.__runchecks(member.id):
-            reason = await self.__convert(reason)
+            reason = await self.reason_convert(reason)
             warnings = []
             try:
                 warnings = DataUtils.guilddata(self.ctx.guild.id).get('warnings').get(str(member.id))
