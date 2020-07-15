@@ -30,12 +30,12 @@ class Management(commands.Cog):
     async def modlog(self, ctx, value=None, channel=None):
         if value is not None:
             if ',' in value: value = value.split(',')
-            await ModUtils.Utils().update_modlog_status(ctx, value)
+            await ModUtils.Utils(self.bot, ctx).update_modlog_status(value)
         if channel is not None:
-            await ModUtils.Utils().update_modlog_channel(ctx, int(channel))
+            await ModUtils.Utils(self.bot, ctx).update_modlog_channel(int(channel))
         if channel is None:
-            await ModUtils.Utils().update_modlog_channel(ctx, ctx.channel.id)
-        settings = await ModUtils.Utils().modlog_status(ctx)
+            await ModUtils.Utils(self.bot, ctx).update_modlog_channel(ctx.channel.id)
+        settings = await ModUtils.Utils(self.bot, ctx).modlog_status()
         embed = await MessagingUtils.embed_commandInfo(ctx, f"modlog Settings for guild {ctx.guild}", "")
         if settings is not False:
             embed.add_field(name="Commands under modlog", value=settings[1], inline=False)

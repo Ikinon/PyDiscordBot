@@ -30,7 +30,10 @@ class Moderation(commands.Cog):
                                                               f"{args[1]} was not found in guild, do you want to try "
                                                               f"forceban?")
             if await MessagingUtils.message_timechecked(self.bot, ctx, msg, 10):
-                await ModUtils.Utils(self.bot, ctx).forceban(args[1], args[2])
+                reason = ""
+                if len(args) < 3:
+                    reason = await ModUtils.Utils(self.bot, ctx).reason_convert()
+                await ModUtils.Utils(self.bot, ctx).forceban(args[1], reason)
 
     @commands.command()
     @commands.guild_only()
