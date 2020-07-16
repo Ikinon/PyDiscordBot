@@ -19,11 +19,15 @@ class ErrorUtils(commands.Cog):
         if hasattr(ctx.command, 'on_error'):
             return
 
-        ignored = (commands.CommandNotFound, commands.UserInputError)
+        ignored = (commands.CommandNotFound)
         error = getattr(error, 'original', error)
 
         if isinstance(error, ignored):
             return
+
+        # TODO: Find a neat way to make this more specific, such as what the user inputted to make the target unknown
+        elif isinstance(error, discord.errors.NotFound):
+            return await MessagingUtils.send_embed_commandFail(ctx, f"{ctx.command}", "Could not find target")
 
         elif isinstance(error, discord.ext.commands.MissingPermissions):
             return await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
