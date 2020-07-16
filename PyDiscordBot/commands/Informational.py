@@ -11,18 +11,24 @@ class Informational(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def userinfo(self, ctx, user: discord.User = None):
+    async def userinfo(self, ctx, user=None):
         if user is None:
             user = ctx.author
+        elif user.isdecimal() is False:
+           user: discord.User = await commands.UserConverter().convert(ctx, user)
+        elif user.isdecimal():
+            user = await self.bot.fetch_user(user)
         embed = await MessagingUtils.embed_commandInfo(ctx, f"{user}", "")
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="User ID", value=user.id, inline=True)
         embed.add_field(name="User Created", value=user.created_at.date(), inline=True)
-        if user in self.bot.users:
-            embed.add_field(name="Status", value=user.status, inline=True)
-            embed.add_field(name="Joined At", value=user.joined_at.date(), inline=True)
+        if user in ctx.guild.members:
+            member = ctx.guild.get_member(user.id)
+            embed.add_field(name="Status", value=member.status, inline=True)
+            embed.add_field(name="Joined At", value=member.joined_at.date(), inline=True)
         await ctx.send(embed=embed)
 
+    @commands.guild_only()
     @commands.command(name="guildinfo", aliases=["serverinfo"])
     async def guildinfo(self, ctx, guild: discord.Guild = None):
         if guild is None:
