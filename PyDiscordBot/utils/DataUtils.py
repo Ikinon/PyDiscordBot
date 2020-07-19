@@ -11,7 +11,7 @@ with open("config.json") as cfg:
 client = pymongo.MongoClient(config["database"])
 
 
-def config(data):
+def configData(data):
     return config[data]
 
 
