@@ -14,9 +14,11 @@ async def after_invoke(ctx):
 
 async def before_invoke(message):
     try:
-        if DataUtils.blocked_data(message.author.id).get('state'):
+        if message.author.id in DataUtils.configData('developer_id'):
+            return True
+        elif DataUtils.blocked_data(message.author.id).get('state'):
             return False
-        if message.guild is not None:
+        elif message.guild is not None:
             if DataUtils.blocked_data(message.guild.id).get('state'):
                 return False
         else:
@@ -34,7 +36,7 @@ class Events(commands.Cog):
         toinsert = [
             {"_id": guild.id, "guild_id": guild.id, "modlog_status": "NONE", "deleteCommand": True}
         ]
-        DataUtils.guild_database().insert_many(toinsert)
+        DataUtils.guild_database(guild.id).insert_many(toinsert)
 
     @commands.Cog.listener()
     async def on_message(self, message):
