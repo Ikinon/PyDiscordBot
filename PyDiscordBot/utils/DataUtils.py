@@ -1,8 +1,7 @@
 import json
+from distutils.util import strtobool
 
 import pymongo
-
-from distutils.util import strtobool
 
 from PyDiscordBot.utils import MessagingUtils
 
@@ -20,8 +19,17 @@ def database():
     return client["database"]["guilds"]
 
 
-def guilddata(guild_id):
+def guild_database(guild_id):
     for x in database().find(dict({'_id': guild_id})):
+        return x
+
+
+def blocked_database():
+    return client["database"]["blocked_ids"]
+
+
+def blocked_data(id):
+    for x in blocked_database().find(dict({'_id': id})):
         return x
 
 
@@ -32,7 +40,7 @@ async def settingChanger(ctx, blacklist, Guildsettings, setting, value):
     if setting not in Guildsettings and setting not in blacklist:
         await MessagingUtils.send_embed_commandFail(ctx, "Setting Change", f"{setting} does not exist.")
     if setting in Guildsettings and setting not in blacklist:
-        Oldvalue = guilddata(ctx.guild.id).get(setting)
+        Oldvalue = guild_database(ctx.guild.id).get(setting)
         try:
             # TODO: This needs to be more accurate, for example, if the setting is a channel id, make sure it exists!
             if type(Oldvalue) is bool:  # I hope there's another decent way to try to do this

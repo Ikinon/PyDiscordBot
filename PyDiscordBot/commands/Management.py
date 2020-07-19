@@ -13,13 +13,13 @@ class Management(commands.Cog):
     async def settings(self, ctx, setting=None, value=None):
         blacklist = ['_id', 'guild_id', 'warnings', 'modlog_status', 'modlog_channel']
         guildSettings = []
-        for x in DataUtils.guilddata(ctx.guild.id):
+        for x in DataUtils.guild_database(ctx.guild.id):
             if x not in blacklist:
                 guildSettings.append(x)
         if not setting:
             embed = await MessagingUtils.embed_commandInfo(ctx, f"Settings for guild {ctx.guild}", "")
             for item in guildSettings:
-                embed.add_field(name=item, value=DataUtils.guilddata(ctx.guild.id).get(item), inline=False)
+                embed.add_field(name=item, value=DataUtils.guild_database(ctx.guild.id).get(item), inline=False)
             await ctx.send(embed=embed)
         else:
             await DataUtils.settingChanger(ctx, blacklist, guildSettings, setting, value)

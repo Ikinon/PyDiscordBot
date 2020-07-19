@@ -4,7 +4,7 @@ from PyDiscordBot.utils import DataUtils
 
 
 async def after_invoke(ctx):
-    if DataUtils.guilddata(ctx.guild.id).get('deleteCommand') is True:
+    if DataUtils.guild_database(ctx.guild.id).get('deleteCommand') is True:
         if ctx.command.module != 'PyDiscordBot.commands.Owner':
             try:
                 await ctx.message.delete()
@@ -14,10 +14,10 @@ async def after_invoke(ctx):
 
 async def before_invoke(message):
     try:
-        if DataUtils.blockeddata(message.author.id).get('state'):
+        if DataUtils.blocked_data(message.author.id).get('state'):
             return False
         if message.guild is not None:
-            if DataUtils.blockeddata(message.guild.id).get('state'):
+            if DataUtils.blocked_data(message.guild.id).get('state'):
                 return False
         else:
             return True
