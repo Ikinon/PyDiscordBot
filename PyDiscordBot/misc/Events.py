@@ -42,7 +42,10 @@ class Events(commands.Cog):
     async def on_message(self, message):
         if await before_invoke(message):
             await self.bot.process_commands(message)
-            await after_invoke(await self.bot.get_context(message))
+
+    @commands.Cog.listener()
+    async def on_command(self, ctx):
+        await after_invoke(ctx)
 
 
 def setup(bot):
