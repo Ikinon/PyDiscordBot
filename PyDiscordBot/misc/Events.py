@@ -4,7 +4,7 @@ from PyDiscordBot.utils import DataUtils
 
 
 async def after_invoke(ctx):
-    if DataUtils.guild_database(ctx.guild.id).get('deleteCommand') is True:
+    if DataUtils.guild_data(ctx.guild.id).get('deleteCommand') is True:
         if ctx.command.module != 'PyDiscordBot.commands.Owner':
             try:
                 await ctx.message.delete()
@@ -36,7 +36,7 @@ class Events(commands.Cog):
         toinsert = [
             {"_id": guild.id, "guild_id": guild.id, "modlog_status": "NONE", "deleteCommand": True}
         ]
-        DataUtils.guild_database(guild.id).insert_many(toinsert)
+        DataUtils.guild_database().insert_many(toinsert)
 
     @commands.Cog.listener()
     async def on_message(self, message):

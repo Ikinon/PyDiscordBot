@@ -64,17 +64,17 @@ class Utils():
         return await self.ctx.guild.create_role(name=name, permissions=permissions, reason=reason)
 
     async def modlog_status(self):
-        modlog_status = DataUtils.guild_database(self.ctx.guild.id).get('modlog_status')
+        modlog_status = DataUtils.guild_data(self.ctx.guild.id).get('modlog_status')
         if modlog_status == "NONE":
             return False
         elif modlog_status:
-            return [DataUtils.guild_database(self.ctx.guild.id).get('modlog_channel'), modlog_status]
+            return [DataUtils.guild_data(self.ctx.guild.id).get('modlog_channel'), modlog_status]
 
     async def update_modlog_status(self, value):
-        DataUtils.database().update_one(dict({'_id': self.ctx.guild.id}), dict({'$set': {"modlog_status": value}}))
+        DataUtils.guild_database().update_one(dict({'_id': self.ctx.guild.id}), dict({'$set': {"modlog_status": value}}))
 
     async def update_modlog_channel(self, value: int):
-        DataUtils.database().update_one(dict({'_id': self.ctx.guild.id}), dict({'$set': {"modlog_channel": value}}))
+        DataUtils.guild_database().update_one(dict({'_id': self.ctx.guild.id}), dict({'$set': {"modlog_channel": value}}))
 
     async def kick(self, member: discord.Member, reason=None):
         if await self.__runchecks(member.id):
@@ -118,14 +118,14 @@ class Utils():
             reason = await self.reason_convert(reason)
             embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Muted Member", f"{member} has been muted!")
             try:
-                role = discord.utils.get(self.ctx.guild.roles, id=int(DataUtils.guild_database(self.ctx.guild.id).get('mute_role')))
+                role = discord.utils.get(self.ctx.guild.roles, id=int(DataUtils.guild_data(self.ctx.guild.id).get('mute_role')))
                 if role is None: raise AttributeError
             except AttributeError:
                 if self.ctx.guild.me.guild_permissions.manage_channels is False:
                     raise discord.ext.commands.BotMissingPermissions(['manage_channels'])
                 role = await self.__create_role(self.ctx, "Muted", discord.Permissions(permissions=0))
-                DataUtils.database().update_one(dict({'_id': self.ctx.guild.id}),
-                                                dict({'$set': {"mute_role": str(role.id)}}))
+                DataUtils.guild_database().update_one(dict({'_id': self.ctx.guild.id}),
+                                                      dict({'$set': {"mute_role": str(role.id)}}))
                 failed = 0
                 for channel in self.ctx.guild.channels:
                     try:
@@ -153,14 +153,14 @@ class Utils():
             reason = await self.reason_convert(reason)
             warnings = []
             try:
-                warnings = DataUtils.guild_database(self.ctx.guild.id).get('warnings').get(str(member.id))
+                warnings = DataUtils.guild_data(self.ctx.guild.id).get('warnings').get(str(member.id))
             except AttributeError:
-                DataUtils.database().update_one(dict({'_id': self.ctx.guild.id}),
-                                                dict({'$set': {'warnings': {str(member.id): [reason]}}}))
+                DataUtils.guild_database().update_one(dict({'_id': self.ctx.guild.id}),
+                                                      dict({'$set': {'warnings': {str(member.id): [reason]}}}))
             else:
                 warnings.append(reason)
-                DataUtils.database().update_many(dict({'_id': self.ctx.guild.id}),
-                                                 dict({'$set': {'warnings': {str(member.id): warnings}}}))
+                DataUtils.guild_database().update_many(dict({'_id': self.ctx.guild.id}),
+                                                       dict({'$set': {'warnings': {str(member.id): warnings}}}))
 
             embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Warn User", f"{member} has been warned")
             embed.add_field(name="Reason", value=reason)
@@ -169,5 +169,5 @@ class Utils():
 
     async def memberwarnings(self, member):
         if await self.__runchecks(member.id):
-            warnings = '\n'.join(DataUtils.guild_database(self.ctx.guild.id).get('warnings').get(str(member.id)))
+            warnings = '\n'.join(DataUtils.guild_data(self.ctx.guild.id).get('warnings').get(str(member.id)))
             await MessagingUtils.send_embed_commandInfo(self.ctx, f"Warnings for {member}", warnings)
