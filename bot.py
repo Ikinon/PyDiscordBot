@@ -4,6 +4,7 @@ import os
 from discord.ext import commands
 
 # config
+
 with open("config.json") as cfg:
     config = json.load(cfg)
 
@@ -31,6 +32,9 @@ class Bot(commands.Bot):
         print(f"Bot name: {self.user.name}\n"
               f"Bot ID: {self.user.id}\n"
               "Successful Login")
+
+    async def on_message(self, message):
+        pass  # I need this for the on_message in events for some reason
 
 
 bot = Bot().run(config["token"])
