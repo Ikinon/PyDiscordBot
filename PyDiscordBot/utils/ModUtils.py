@@ -40,8 +40,8 @@ class Utils():
         if await self.modlog_status() is False:
             return
         elif await self.modlog_status():
-            embed = await MessagingUtils.embed_basic(self.ctx, f"{self.ctx.command}'ed member",
-                                                     f"{self.ctx.author.mention} {self.ctx.command}ed member {target}",
+            embed = await MessagingUtils.embed_basic(self.ctx, f"{str(self.ctx.command).title()} member",
+                                                     f"{self.ctx.author.mention} {str(self.ctx.command).title()} member {target}",
                                                      Constants.commandInfo, False)
             embed.add_field(name="Channel", value=f"{self.ctx.channel.name} ({self.ctx.channel.id})")
             embed.add_field(name="Reason", value=reason)
@@ -71,10 +71,12 @@ class Utils():
             return [DataUtils.guild_data(self.ctx.guild.id).get('modlog_channel'), modlog_status]
 
     async def update_modlog_status(self, value):
-        DataUtils.guild_database().update_one(dict({'_id': self.ctx.guild.id}), dict({'$set': {"modlog_status": value}}))
+        DataUtils.guild_database().update_one(dict({'_id': self.ctx.guild.id}),
+                                              dict({'$set': {"modlog_status": value}}))
 
     async def update_modlog_channel(self, value: int):
-        DataUtils.guild_database().update_one(dict({'_id': self.ctx.guild.id}), dict({'$set': {"modlog_channel": value}}))
+        DataUtils.guild_database().update_one(dict({'_id': self.ctx.guild.id}),
+                                              dict({'$set': {"modlog_channel": value}}))
 
     async def kick(self, member: discord.Member, reason=None):
         if await self.__runchecks(member.id):
@@ -112,18 +114,18 @@ class Utils():
         await self.__mod_action_complete(user, reason)
 
     # TODO: Timed mute, Voice Mute
-    # TODO: BUG: This doesn't work when the member in in a voice chat?!
     async def mute(self, member, reason):
         if await self.__runchecks(member.id):
             reason = await self.reason_convert(reason)
             embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Muted Member", f"{member} has been muted!")
             try:
-                role = discord.utils.get(self.ctx.guild.roles, id=int(DataUtils.guild_data(self.ctx.guild.id).get('mute_role')))
+                role = discord.utils.get(self.ctx.guild.roles,
+                                         id=int(DataUtils.guild_data(self.ctx.guild.id).get('mute_role')))
                 if role is None: raise AttributeError
             except AttributeError:
                 if self.ctx.guild.me.guild_permissions.manage_channels is False:
                     raise discord.ext.commands.BotMissingPermissions(['manage_channels'])
-                role = await self.__create_role(self.ctx, "Muted", discord.Permissions(permissions=0))
+                role = await self.__create_role("Muted", discord.Permissions(permissions=0), reason)
                 DataUtils.guild_database().update_one(dict({'_id': self.ctx.guild.id}),
                                                       dict({'$set': {"mute_role": str(role.id)}}))
                 failed = 0
@@ -137,14 +139,21 @@ class Utils():
                         failed = +1
                 if failed != 0 & len(self.ctx.guild.channels) != failed:
                     embed.add_field(name="Permission Error",
-                                    value=f"Failed to crate channel permission entries for {failed} channel(s). Please check permissions.")
-            if role not in member.roles:
-                await member.add_roles(role, reason=reason)
+                                    value=f"Failed to create channel permission entries for {failed} channel(s). Please check permissions.")
             if role in member.roles:
                 await member.remove_roles(role, reason=reason)
                 embed.description = f"{member} has been un-muted"
-                embed.title="Un-Muted Member"
+                embed.title = "Un-Muted Member"
                 self.ctx.command = "un-mute"
+            else:
+                await member.add_roles(role, reason=reason)
+            if isinstance(member.voice, discord.member.VoiceState):
+                if member.voice.channel.permissions_for(self.ctx.guild.me).mute_members:
+                    if self.ctx.command == "un-mute":
+                        await member.edit(mute=False)
+                    else:
+                        await member.edit(mute=True)
+                    embed.add_field(name="Voice Mute", value=f"{embed.description}")
             await self.__mod_action_complete(member, reason, embed)
 
     # TODO: Allow removing warnings
