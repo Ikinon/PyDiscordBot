@@ -12,14 +12,14 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx, member: discord.Member, reason=None):
+    async def kick(self, ctx, member: discord.Member, *, reason=None):
         await ModUtils.Utils(self.bot, ctx).kick(member, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx, member: discord.Member, reason=None):
+    async def ban(self, ctx, member: discord.Member, *, reason=None):
         await ModUtils.Utils(self.bot, ctx).ban(member, reason)
 
     @ban.error
@@ -39,27 +39,27 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def softban(self, ctx, member: discord.Member, reason=None):
+    async def softban(self, ctx, member: discord.Member, *, reason=None):
         await ModUtils.Utils(self.bot, ctx).softban(member, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx, user, reason=None):
+    async def unban(self, ctx, user, *, reason=None):
         await ModUtils.Utils(self.bot, ctx).unban(user, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx, member: discord.Member, reason=None):
+    async def mute(self, ctx, member: discord.Member, *, reason=None):
         await ModUtils.Utils(self.bot, ctx).mute(member, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
-    async def warn(self, ctx, member: discord.Member, reason=None):
+    async def warn(self, ctx, member: discord.Member, *, reason=None):
         await ModUtils.Utils(self.bot, ctx).warn(member, reason)
 
     @commands.command()
