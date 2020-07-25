@@ -33,6 +33,12 @@ class Utils():
             embed.description = f"I'm not going to {self.ctx.command} myself!"
             await self.ctx.send(embed=embed)
             return False
+        if self.ctx.guild.get_member(target):
+            if target.top_role > self.ctx.author.top_role and self.ctx.author != self.ctx.guild.owner:
+                embed.description = f"Your role is lower than {target.name} in role hierarchy!"
+                return False
+            if target.top_role > self.ctx.guild.me.top_role:
+                embed.description = f"My top role is lower than {target.name} in role hierarchy!"
         elif target:
             return True
 
