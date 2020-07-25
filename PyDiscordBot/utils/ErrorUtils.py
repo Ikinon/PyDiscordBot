@@ -55,8 +55,9 @@ class ErrorUtils(commands.Cog):
                                                              "There was an error while running the command!",
                                                              f"Stack Trace: https://hasteb.in/" +
                                                              (await post.json())['key'])
-                if DataUtils.configData("webhook"):
-                    webhook = discord.Webhook.from_url(DataUtils.configData("webhook"), adapter=discord.AsyncWebhookAdapter(session))
+                if await DataUtils.configData("webhook"):
+                    webhook = discord.Webhook.from_url(await DataUtils.configData("webhook"),
+                                                       adapter=discord.AsyncWebhookAdapter(session))
                     await webhook.send(err)
 
 

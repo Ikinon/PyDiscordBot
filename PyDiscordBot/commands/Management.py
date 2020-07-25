@@ -13,7 +13,7 @@ class Management(commands.Cog):
     async def settings(self, ctx, setting=None, value=None):
         blacklist = ['_id', 'guild_id', 'warnings', 'modlog_status', 'modlog_channel']
         guildSettings = []
-        for x in DataUtils.guild_data(ctx.guild.id):
+        for x in (await DataUtils.guild_data(ctx.guild.id)):
             if x not in blacklist:
                 guildSettings.append(x)
         if not setting:

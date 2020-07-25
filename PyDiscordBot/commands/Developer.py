@@ -14,7 +14,7 @@ class Developer(commands.Cog):
         self.bot = bot
 
     async def cog_check(self, ctx):
-        if ctx.author.id in DataUtils.configData("developer_id"):
+        if ctx.author.id in await DataUtils.configData("developer_id"):
             return True
 
     @commands.command(aliases=["exit"])

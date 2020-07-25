@@ -15,7 +15,7 @@ class Informational(commands.Cog):
         if user is None:
             user = ctx.author
         elif user.isdecimal() is False:
-           user: discord.User = await commands.UserConverter().convert(ctx, user)
+            user: discord.User = await commands.UserConverter().convert(ctx, user)
         elif user.isdecimal():
             user = await self.bot.fetch_user(user)
         embed = await MessagingUtils.embed_commandInfo(ctx, f"{user}", "")
