@@ -5,7 +5,7 @@ import discord
 from aiohttp import ClientSession
 from discord.ext import commands
 
-from PyDiscordBot.utils import MessagingUtils
+from PyDiscordBot.utils import MessagingUtils, DataUtils
 
 
 class ErrorUtils(commands.Cog):
@@ -42,12 +42,22 @@ class ErrorUtils(commands.Cog):
 
         print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__)
-        err = traceback.format_exception(type(error), error, error.__traceback__)
+        trace_error = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
+        err = f"Author: {ctx.author.name}({ctx.author.id})\nMessage: {ctx.message.content}"
+        if ctx.guild:
+            err += f"\nGuild: {ctx.guild.name}({ctx.guild.id})\n\n{trace_error}"
+        elif not ctx.guild:
+            err += f"Guild: No guild\n\n{trace_error}"
+
         async with ClientSession() as session:
             async with session.post('https://hasteb.in/documents', data=''.join(''.join(err))) as post:
-                return await MessagingUtils.send_embed_commandError(ctx, "There was an error while running the command!",
-                                                              f"Stack Trace: https://hasteb.in/" +
-                                                              (await post.json())['key'])
+                await MessagingUtils.send_embed_commandError(ctx,
+                                                             "There was an error while running the command!",
+                                                             f"Stack Trace: https://hasteb.in/" +
+                                                             (await post.json())['key'])
+                if DataUtils.configData("webhook"):
+                    webhook = discord.Webhook.from_url(DataUtils.configData("webhook"), adapter=discord.AsyncWebhookAdapter(session))
+                    await webhook.send(err)
 
 
 def setup(bot):
