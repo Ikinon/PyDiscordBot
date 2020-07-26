@@ -1,3 +1,5 @@
+from typing import Union
+
 import discord
 from discord.ext import commands
 
@@ -19,39 +21,45 @@ class Utils():
             raise commands.BadArgument(f'reason is too long ({len(argument)}/{reason_max})')
         return ret
 
-    async def __runchecks(self, target):
+    async def __runchecks(self, target: Union[discord.User, discord.Member]):
         embed = await MessagingUtils.embed_commandWarning(self.ctx, "", "")
         if target is None:
             embed.description = "I cannot find that user!"
             await self.ctx.send(embed=embed)
             return False
-        if target == self.ctx.author.id:
+        if target == self.ctx.author:
             embed.description = f"You cannot {self.ctx.command} yourself!"
             await self.ctx.send(embed=embed)
             return False
-        if target == self.bot.user.id:
+        if target == self.bot.user:
             embed.description = f"I'm not going to {self.ctx.command} myself!"
             await self.ctx.send(embed=embed)
             return False
-        if self.ctx.guild.get_member(target):
+        if self.ctx.guild.get_member(target.id):
+            if target == self.ctx.guild.owner:
+                embed.description = f"I cannot {self.ctx.command} the owner of the server!"
+                await self.ctx.send(embed=embed)
+                return False
             if target.top_role > self.ctx.author.top_role and self.ctx.author != self.ctx.guild.owner:
                 embed.description = f"Your role is lower than {target.name} in role hierarchy!"
+                await self.ctx.send(embed=embed)
                 return False
             if target.top_role > self.ctx.guild.me.top_role:
                 embed.description = f"My top role is lower than {target.name} in role hierarchy!"
-        elif target:
-            return True
+                await self.ctx.send(embed=embed)
+                return False
+        return True
 
     async def __modlog(self, target, reason):
-        if await self.modlog_status() is False:
+        modlog = await self.modlog_status()
+        if modlog is False:
             return
-        elif await self.modlog_status():
+        elif modlog:
             embed = await MessagingUtils.embed_basic(self.ctx, f"{str(self.ctx.command).title()} member",
                                                      f"{self.ctx.author.mention} {str(self.ctx.command).title()} member {target}",
                                                      Constants.commandInfo, False)
             embed.add_field(name="Channel", value=f"{self.ctx.channel.name} ({self.ctx.channel.id})")
             embed.add_field(name="Reason", value=reason)
-            modlog = await self.modlog_status()
             channel = discord.utils.get(self.ctx.guild.channels, id=int(modlog[0]))
             if modlog[1] == "ALL":
                 await channel.send(embed=embed)
@@ -85,19 +93,19 @@ class Utils():
                                                       dict({'$set': {"modlog_channel": value}}))
 
     async def kick(self, member: discord.Member, reason=None):
-        if await self.__runchecks(member.id):
+        if await self.__runchecks(member):
             reason = await self.reason_convert(reason)
             await member.kick(reason=reason)
             await self.__mod_action_complete(member, reason)
 
     async def ban(self, member: discord.Member, reason=None):
-        if await self.__runchecks(member.id):
+        if await self.__runchecks(member):
             reason = await self.reason_convert(reason)
             await member.ban(reason=reason)
             await self.__mod_action_complete(member, reason)
 
     async def softban(self, member: discord.Member, reason=None):
-        if await self.__runchecks(member.id):
+        if await self.__runchecks(member):
             reason = await self.reason_convert(reason)
             await member.ban(reason=reason), await member.unban(reason=reason)
             await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Soft-banned member",
@@ -119,11 +127,11 @@ class Utils():
                 await self.ctx.guild.unban(ban.user, reason=reason)
         await self.__mod_action_complete(user, reason)
 
-    # TODO: Timed mute, Voice Mute
-    async def mute(self, member, reason):
-        if await self.__runchecks(member.id):
+    # TODO: Timed mute
+    async def mute(self, member: discord.Member, reason):
+        if await self.__runchecks(member):
             reason = await self.reason_convert(reason)
-            embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Muted Member", f"{member} has been muted!")
+            embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Mute Toggle", f"{member} has been muted")
             try:
                 role = discord.utils.get(self.ctx.guild.roles,
                                          id=int((await DataUtils.guild_data(self.ctx.guild.id)).get('mute_role')))
@@ -149,7 +157,6 @@ class Utils():
             if role in member.roles:
                 await member.remove_roles(role, reason=reason)
                 embed.description = f"{member} has been un-muted"
-                embed.title = "Un-Muted Member"
                 self.ctx.command = "un-mute"
             else:
                 await member.add_roles(role, reason=reason)
@@ -164,7 +171,7 @@ class Utils():
 
     # TODO: Allow removing warnings
     async def warn(self, member, reason=None):
-        if await self.__runchecks(member.id):
+        if await self.__runchecks(member):
             reason = await self.reason_convert(reason)
             warnings = []
             try:
@@ -183,6 +190,5 @@ class Utils():
             await self.__mod_action_complete(member, reason, embed)
 
     async def memberwarnings(self, member):
-        if await self.__runchecks(member.id):
-            warnings = '\n'.join((await DataUtils.guild_data(self.ctx.guild.id)).get('warnings').get(str(member.id)))
-            await MessagingUtils.send_embed_commandInfo(self.ctx, f"Warnings for {member}", warnings)
+        warnings = '\n'.join((await DataUtils.guild_data(self.ctx.guild.id)).get('warnings').get(str(member.id)))
+        await MessagingUtils.send_embed_commandInfo(self.ctx, f"Warnings for {member}", warnings)
