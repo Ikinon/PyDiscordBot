@@ -19,7 +19,7 @@ class Management(commands.Cog):
         if not setting:
             embed = await MessagingUtils.embed_commandInfo(ctx, f"Settings for guild {ctx.guild}", "")
             for item in guildSettings:
-                embed.add_field(name=item, value=DataUtils.guild_data(ctx.guild.id).get(item), inline=False)
+                embed.add_field(name=item, value=(await DataUtils.guild_data(ctx.guild.id)).get(item), inline=False)
             await ctx.send(embed=embed)
         else:
             await DataUtils.settingChanger(ctx, blacklist, guildSettings, setting, value)
