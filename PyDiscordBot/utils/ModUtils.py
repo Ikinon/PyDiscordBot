@@ -85,8 +85,8 @@ class Utils():
             return [(await DataUtils.guild_data(self.ctx.guild.id)).get('modlog_channel'), modlog_status]
 
     async def update_modlog_status(self, value):
-        (await (await DataUtils.guild_database())).update_one(dict({'_id': self.ctx.guild.id}),
-                                                              dict({'$set': {"modlog_status": value}}))
+        (await DataUtils.guild_database()).update_one(dict({'_id': self.ctx.guild.id}),
+                                                      dict({'$set': {"modlog_status": value}}))
 
     async def update_modlog_channel(self, value: int):
         (await DataUtils.guild_database()).update_one(dict({'_id': self.ctx.guild.id}),
@@ -115,7 +115,7 @@ class Utils():
     async def forceban(self, user, reason=None):
         user = await self.bot.fetch_user(user)
         reason = await self.reason_convert(reason)
-        if await self.__runchecks(user.id):
+        if await self.__runchecks(user):
             await self.ctx.guild.ban(user, reason=reason)
             await self.__mod_action_complete(user, reason)
 
