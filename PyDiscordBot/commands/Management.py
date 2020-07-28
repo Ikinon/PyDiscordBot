@@ -10,19 +10,29 @@ class Management(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
-    async def settings(self, ctx, setting=None, value=None):
-        blacklist = ['_id', 'guild_id', 'warnings', 'modlog_status', 'modlog_channel']
-        guildSettings = []
-        for x in (await DataUtils.guild_data(ctx.guild.id)):
-            if x not in blacklist:
-                guildSettings.append(x)
-        if not setting:
-            embed = await MessagingUtils.embed_commandInfo(ctx, f"Settings for guild {ctx.guild}", "")
+    async def settings(self, ctx, setting_name=None, value=None):
+        guildSettings = (await DataUtils.guild_data(ctx.guild.id)).get("guild_settings")
+        embed = await MessagingUtils.embed_commandInfo(ctx, f"Settings for guild {ctx.guild}", "")
+        if setting_name is None:
             for item in guildSettings:
-                embed.add_field(name=item, value=(await DataUtils.guild_data(ctx.guild.id)).get(item), inline=False)
-            await ctx.send(embed=embed)
+                contents = "```"
+                items = guildSettings.get(item)  # subset of item
+                for setting in items:
+                    contents += f"{setting}: {items.get(setting)}\n"
+                contents += "```"
+                embed.add_field(name=item, value=contents, inline=False)
         else:
-            await DataUtils.settingChanger(ctx, blacklist, guildSettings, setting, value)
+            try:
+                old_setting = (await DataUtils.guild_settings(ctx.guild, setting_name, settings=guildSettings,
+                                                          get_setting_value=True))[0]
+                await DataUtils.guild_settings(ctx.guild, setting_name, value=value, change=True)
+            except AttributeError:
+                return await MessagingUtils.send_embed_commandWarning(ctx, "Setting change",
+                                                                      f"{setting_name} is not a valid setting")
+            else:
+                embed.add_field(name=f"New settings applied for {setting_name}",
+                                value=f"Old setting: {old_setting}\nNew setting: {value}")
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.guild_only()

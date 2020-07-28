@@ -133,15 +133,15 @@ class Utils():
             reason = await self.reason_convert(reason)
             embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Mute Toggle", f"{member} has been muted")
             try:
-                role = discord.utils.get(self.ctx.guild.roles,
-                                         id=int((await DataUtils.guild_data(self.ctx.guild.id)).get('mute_role')))
+                role = discord.utils.get(self.ctx.guild.roles, id=
+                (await DataUtils.guild_settings(self.ctx.guild, 'mute_role', get_setting_value=True))[0])
                 if role is None: raise AttributeError
             except AttributeError:
                 if self.ctx.guild.me.guild_permissions.manage_channels is False:
                     raise discord.ext.commands.BotMissingPermissions(['manage_channels'])
                 role = await self.__create_role("Muted", discord.Permissions(permissions=0), reason)
-                (await DataUtils.guild_database()).update_one(dict({'_id': self.ctx.guild.id}),
-                                                              dict({'$set': {"mute_role": str(role.id)}}))
+                await DataUtils.guild_settings(self.ctx.guild, "mute_role", value=role.id, change=True, insert_new=True,
+                                               setting_subset="moderation", check_value_type=False)
                 failed = 0
                 for channel in self.ctx.guild.channels:
                     try:

@@ -1,10 +1,10 @@
 import json
 from distutils.util import strtobool
+from typing import Union, Any
 
 import aiofiles
+import discord
 import pymongo
-
-from PyDiscordBot.utils import MessagingUtils
 
 
 async def configData(data):
@@ -34,26 +34,41 @@ async def blocked_data(id):
         return x
 
 
-async def settingChanger(ctx, blacklist, Guildsettings, setting, value):
-    if setting in blacklist:
-        await MessagingUtils.send_embed_commandWarning(ctx, "Setting Change",
-                                                       "You are not allowed to modify this setting.")
-    if setting not in Guildsettings and setting not in blacklist:
-        await MessagingUtils.send_embed_commandFail(ctx, "Setting Change", f"{setting} does not exist.")
-    if setting in Guildsettings and setting not in blacklist:
-        Oldvalue = (await guild_data(ctx.guild.id)).get(setting)
-        try:
-            # TODO: This needs to be more accurate, for example, if the setting is a channel id, make sure it exists!
-            if type(Oldvalue) is bool:  # I hope there's another decent way to try to do this
+async def guild_settings(guild: discord.Guild, setting, settings: Union[discord.Guild, dict] = None, value: Any = None,
+                         get_setting_subset: bool = False, get_setting_value: bool = False, check_value: bool = False,
+                         change: bool = False, insert_new: bool = False, setting_subset: str = None,
+                         check_value_type: bool = True):
+    if isinstance(settings, discord.Guild) or settings is None:
+        settings = (await guild_data(guild.id)).get("guild_settings")
+    subset = None
+    to_ret = []
+    for item in settings:  # iterating through subsets
+        items = settings.get(item)  # subset of item
+        for item_setting in items:  # iterating through settings of current subset
+            if setting in item_setting:
+                subset = item  # subset of current setting
+                if get_setting_subset:
+                    to_ret.append(item)
+                if get_setting_value:
+                    to_ret.append(items.get(item_setting))  # setting
+    if not insert_new:
+        old_value = (settings.get(subset)).get(setting)
+    if check_value:
+        if old_value is value:
+            to_ret.append(True)
+        elif old_value:
+            to_ret.append(False)
+    if change:
+        # TODO: This needs to be more accurate, for example, if the setting is a channel id, make sure it exists!
+        if check_value_type:
+            if type(old_value) is bool:  # I hope there's another decent way to try to do this
                 value = bool(strtobool(value))
-            if type(Oldvalue) is not bool:
-                value = Oldvalue(value)
-        except ValueError:
-            await MessagingUtils.send_embed_commandWarning(ctx, "Setting Change", f"New value is not the correct type, "
-                                                                                  f"old value was {type(Oldvalue)},{value} is {type(value)}")
-        else:
-            (await guild_database()).update_one(dict({'_id': ctx.guild.id}), dict({'$set': {setting: value}}))
-            embed = await MessagingUtils.embed_commandSuccess(ctx, "Setting Change", "New setting applied")
-            embed.add_field(name=f"Old setting for {setting}", value=Oldvalue, inline=False)
-            embed.add_field(name=f"New setting for {setting}", value=value, inline=False)
-            await ctx.send(embed=embed)
+            if type(old_value) is not bool:
+                value = type(old_value)(value)
+        if not insert_new:
+            settings[subset][setting] = value
+        elif insert_new:
+            settings[setting_subset][setting] = value
+
+        (await (guild_database())).update_many(dict({'_id': guild.id}), dict({'$set': {'guild_settings': settings}}))
+    return tuple(to_ret)
