@@ -40,8 +40,10 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if await before_invoke(message):
-            await self.bot.process_commands(message)
+        context = await self.bot.get_context(message)
+        if context.command is not None:
+            if await before_invoke(message):
+                await self.bot.invoke(context)
 
     @commands.Cog.listener()
     async def on_command(self, ctx):
