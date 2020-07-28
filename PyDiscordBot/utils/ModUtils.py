@@ -9,11 +9,11 @@ from PyDiscordBot.utils import MessagingUtils, DataUtils
 
 class Utils():
 
-    def __init__(self, bot, ctx):
+    def __init__(self, bot: commands.Bot, ctx: commands.Context):
         self.ctx = ctx
         self.bot = bot
 
-    async def reason_convert(self, argument=None):
+    async def reason_convert(self, argument=None) -> str:
         ret = f'{self.ctx.author}: {argument}'
 
         if len(ret) > 512:
@@ -21,7 +21,7 @@ class Utils():
             raise commands.BadArgument(f'reason is too long ({len(argument)}/{reason_max})')
         return ret
 
-    async def __runchecks(self, target: Union[discord.User, discord.Member]):
+    async def __runchecks(self, target: Union[discord.User, discord.Member]) -> bool:
         embed = await MessagingUtils.embed_commandWarning(self.ctx, "", "")
         if target is None:
             embed.description = "I cannot find that user!"
@@ -74,7 +74,7 @@ class Utils():
         elif embed:
             await self.ctx.send(embed=embed)
 
-    async def __create_role(self, name, permissions: discord.permissions, reason=None):
+    async def __create_role(self, name, permissions: discord.permissions, reason=None) -> discord.Role:
         return await self.ctx.guild.create_role(name=name, permissions=permissions, reason=reason)
 
     async def modlog_status(self):
@@ -128,7 +128,7 @@ class Utils():
         await self.__mod_action_complete(user, reason)
 
     # TODO: Timed mute
-    async def mute(self, member: discord.Member, reason):
+    async def mute(self, member: discord.Member, reason: str = None):
         if await self.__runchecks(member):
             reason = await self.reason_convert(reason)
             embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Mute Toggle", f"{member} has been muted")

@@ -25,7 +25,7 @@ class Management(commands.Cog):
         else:
             try:
                 old_setting = (await DataUtils.guild_settings(ctx.guild, setting_name, settings=guildSettings,
-                                                          get_setting_value=True))[0]
+                                                              get_setting_value=True))[0]
                 await DataUtils.guild_settings(ctx.guild, setting_name, value=value, change=True)
             except AttributeError:
                 return await MessagingUtils.send_embed_commandWarning(ctx, "Setting change",
