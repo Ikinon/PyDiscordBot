@@ -11,6 +11,7 @@ class Management(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def settings(self, ctx, setting_name=None, value=None):
+        """Retrieves/sets guild settings"""
         guildSettings = (await DataUtils.guild_data(ctx.guild.id)).get("guild_settings")
         embed = await MessagingUtils.embed_commandInfo(ctx, f"Settings for guild {ctx.guild}", "")
         if setting_name is None:
@@ -38,6 +39,7 @@ class Management(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def modlog(self, ctx, cmds=None, channel=None):
+        """Retrieve/set modlog settings"""
         if cmds is not None:
             mod_cmds = [str(x) for x in (self.bot.get_cog("Moderation").get_commands()) + ["un-mute", "ALL", "NONE"]]
             if ',' in cmds:

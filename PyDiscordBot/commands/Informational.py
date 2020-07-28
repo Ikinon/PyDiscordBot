@@ -12,6 +12,7 @@ class Informational(commands.Cog):
 
     @commands.command()
     async def userinfo(self, ctx, user=None):
+        """Retrieves information about a user """
         if user is None:
             user = ctx.author
         elif user.isdecimal() is False:
@@ -31,6 +32,7 @@ class Informational(commands.Cog):
     @commands.guild_only()
     @commands.command(name="guildinfo", aliases=["serverinfo"])
     async def guildinfo(self, ctx, guild: discord.Guild = None):
+        """Returns information about the guild"""
         if guild is None:
             guild = ctx.guild
         embed = await MessagingUtils.embed_basic(ctx, f"{guild.name}", "", Constants.commandInfo, True,
