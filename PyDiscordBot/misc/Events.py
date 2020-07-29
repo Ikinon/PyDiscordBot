@@ -35,15 +35,14 @@ class Events(commands.Cog):
     async def on_guild_join(self, guild):
         toinsert = [
             {"_id": guild.id, "guild_id": guild.id, "modlog_status": "NONE", "guild_settings":
-                {"general": {"deleteCommand": False}, "moderation": {"mute_role": 0}}, }]
+                {"general": {"deleteCommand": False, "showPermErrors": True}, "moderation": {"mute_role": 0}}, }]
         (await DataUtils.guild_database()).insert_many(toinsert)
 
     @commands.Cog.listener()
     async def on_message(self, message):
         context = await self.bot.get_context(message)
-        if context.command is not None:
-            if await before_invoke(message):
-                await self.bot.invoke(context)
+        if context.command is not None and await before_invoke(message):
+            await self.bot.invoke(context)
 
     @commands.Cog.listener()
     async def on_command(self, ctx):

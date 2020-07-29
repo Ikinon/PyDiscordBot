@@ -30,8 +30,10 @@ class ErrorUtils(commands.Cog):
             return await MessagingUtils.send_embed_commandFail(ctx, f"{ctx.command}", "Could not find target")
 
         elif isinstance(error, discord.ext.commands.MissingPermissions):
-            return await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
-                                                               f"You need the permission(s) {''.join(error.missing_perms)} for {ctx.command}!")
+            if (await DataUtils.guild_settings(ctx.guild, "showPermErrors", get_setting_value=True))[0]:
+                await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
+                                                            f"You need the permission(s) {''.join(error.missing_perms)} for {ctx.command}!")
+            return
 
         elif isinstance(error, discord.ext.commands.BotMissingPermissions):
             return await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
