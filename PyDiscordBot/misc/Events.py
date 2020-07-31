@@ -1,3 +1,6 @@
+import asyncio
+
+import discord
 from discord.ext import commands
 
 from PyDiscordBot.utils import DataUtils
@@ -35,18 +38,20 @@ class Events(commands.Cog):
     async def on_guild_join(self, guild):
         toinsert = [
             {"_id": guild.id, "guild_id": guild.id, "modlog_status": "NONE", "guild_settings":
-                {"general": {"deleteCommand": False, "showPermErrors": True}, "moderation": {"mute_role": 0}}, }]
+                {"general": {"deleteCommand": False, "showPermErrors": True, "prefixOnMention": True},
+                 "moderation": {"mute_role": 0}}, }]
         (await DataUtils.guild_database()).insert_many(toinsert)
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         context = await self.bot.get_context(message)
-        if context.command is not None and await before_invoke(message):
-            await self.bot.invoke(context)
+        if context.command is not None:
+            if await before_invoke(message):
+                return await asyncio.gather(self.bot.invoke(context), after_invoke(context))
 
-    @commands.Cog.listener()
-    async def on_command(self, ctx):
-        await after_invoke(ctx)
+        if self.bot.user in message.mentions:
+            if (await DataUtils.guild_settings(message.guild, "prefixOnMention", get_setting_value=True))[0]:
+                return await message.channel.send(f"Prefix is: `{await DataUtils.configData('prefix')}`")
 
 
 def setup(bot):
