@@ -6,7 +6,7 @@ from contextlib import redirect_stdout
 import discord
 from discord.ext import commands
 
-from PyDiscordBot.utils import DataUtils
+from PyDiscordBot.utils import DataUtils, CommandUtils
 
 
 class Developer(commands.Cog):
@@ -14,7 +14,7 @@ class Developer(commands.Cog):
         self.bot = bot
 
     async def cog_check(self, ctx):
-        if ctx.author.id in await DataUtils.configData("developer_id"):
+        if await CommandUtils.Checks.User(ctx.author).is_developer():
             return True
 
     @commands.command(aliases=["exit"])
@@ -41,6 +41,16 @@ class Developer(commands.Cog):
     async def reload_extensions(self, ctx):
         for ext in list(map(str, self.bot.extensions)):
             self.bot.reload_extension(ext)
+        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+
+    @commands.command(name="permoverride")
+    async def override_perms(self, ctx, value: bool):
+        if value is True:
+            (await DataUtils.guild_database()).update_one(dict({'_id': ctx.guild.id}),
+                                                          dict({'$set': {"devPermOverride": True}}))
+        if value is False:
+            (await DataUtils.guild_database()).update_one(dict({'_id': ctx.guild.id}),
+                                                          dict({'$unset': {"devPermOverride": True}}))
         await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
     @commands.command(name='eval')

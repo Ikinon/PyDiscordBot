@@ -83,6 +83,5 @@ async def guild_settings(guild: discord.Guild, setting, settings: Union[discord.
             settings[subset][setting] = value
         elif insert_new:
             settings[setting_subset][setting] = value
-
         (await (guild_database())).update_many(dict({'_id': guild.id}), dict({'$set': {'guild_settings': settings}}))
     return tuple(to_ret)

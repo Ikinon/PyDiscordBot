@@ -5,7 +5,7 @@ import discord
 from aiohttp import ClientSession
 from discord.ext import commands
 
-from PyDiscordBot.utils import MessagingUtils, DataUtils
+from PyDiscordBot.utils import MessagingUtils, DataUtils, CommandUtils
 
 
 class ErrorUtils(commands.Cog):
@@ -24,16 +24,19 @@ class ErrorUtils(commands.Cog):
 
         if isinstance(error, ignored):
             return
-
         # TODO: Find a neat way to make this more specific, such as what the user inputted to make the target unknown
         elif isinstance(error, discord.errors.NotFound):
             return await MessagingUtils.send_embed_commandFail(ctx, f"{ctx.command}", "Could not find target")
 
         elif isinstance(error, discord.ext.commands.MissingPermissions):
-            if (await DataUtils.guild_settings(ctx.guild, "showPermErrors", get_setting_value=True))[0]:
-                await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
-                                                            f"You need the permission(s) {''.join(error.missing_perms)} for {ctx.command}!")
-            return
+            guild_data = (await DataUtils.guild_data(ctx.guild.id))
+            if guild_data.get("devPermOverride"):
+                if await CommandUtils.Checks.User(ctx.author).is_developer():
+                    return await ctx.reinvoke()
+            elif (await DataUtils.guild_settings(ctx.guild, "showPermErrors", guild_data.get("guild_settings"),
+                                                 get_setting_value=True))[0]:
+                return await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
+                                                                   f"You need the permission(s) {''.join(error.missing_perms)} for {ctx.command}!")
 
         elif isinstance(error, discord.ext.commands.BotMissingPermissions):
             return await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
