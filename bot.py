@@ -3,16 +3,20 @@ import os
 
 from discord.ext import commands
 
-# config
+from PyDiscordBot.utils import DataUtils
 
+# config
 with open("config.json") as cfg:
     config = json.load(cfg)
 
 
 class Bot(commands.Bot):
 
+    async def get_prefix(bot, message):
+        return await DataUtils.prefix(message.guild)
+
     def __init__(self):
-        super().__init__(command_prefix=config["prefix"])
+        super().__init__(command_prefix=self.get_prefix)
 
     # Plugin Loader
     def load_plugins(self):

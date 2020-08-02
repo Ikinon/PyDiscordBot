@@ -65,6 +65,19 @@ class Management(commands.Cog):
             embed.description = "Disabled"
         await ctx.send(embed=embed)
 
+    # TODO: Learn subcommands so people can run commands like prefix and get prefix without restrictive permissions
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    async def prefix(self, ctx, *, prefix: str = None):
+        current_prefix = await DataUtils.prefix(ctx.guild)
+        if prefix is None:
+            return await MessagingUtils.send_embed_commandInfo(ctx, "", f"Current server prefix is: `{current_prefix}`")
+        elif prefix:
+            await DataUtils.prefix(ctx.guild, change=True, new_prefix=prefix)
+            await MessagingUtils.send_embed_commandInfo(ctx, "", f"New prefix is `{prefix}`\n"
+                                                                 f"(Old prefix was: `{current_prefix}`)")
+
 
 def setup(bot):
     bot.add_cog(Management(bot))

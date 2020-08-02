@@ -34,6 +34,43 @@ async def blocked_data(id: int) -> dict:
         return x
 
 
+async def prefix(prefix_location: discord.Guild = None, change: bool = False, new_prefix: str = None) -> str:
+    """
+
+    :param prefix_location: Guild to retrieve/change prefix in, or if None return default
+    :param change: Specify if to change the prefix
+    :param new_prefix: Max length is 5 characters and must be ascii (except spaces & quotes), if None, prefix is reset
+    :return: Prefix
+    """
+    if prefix_location is not None:
+        if change is False:
+            guild_prefix = (await guild_data(prefix_location.id)).get("prefix")
+            if guild_prefix is not None:
+                return guild_prefix
+            if guild_prefix is None:
+                default_prefix = await configData("prefix")
+                (await guild_database()).update_one(dict({'_id': prefix_location.id}),
+                                                    dict({'$set': {'prefix': default_prefix}}))
+                return default_prefix
+        elif change is True:
+            if new_prefix is None:
+                default_prefix = await configData("prefix")
+                (await guild_database()).update_one(dict({'_id': prefix_location.id}),
+                                                    dict({'$set': {'prefix': default_prefix}}))
+                return default_prefix
+            disallowed = [' ', "\"", "\'"]
+            if len(new_prefix) <= 5 and new_prefix.isascii() and not any(char in new_prefix for char in disallowed):
+                (await guild_database()).update_one(dict({'_id': prefix_location.id}),
+                                                    dict({'$set': {'prefix': new_prefix}}))
+                return new_prefix
+            elif new_prefix:
+                raise ValueError(
+                    "argument 'new_prefix' should be ascii (except spaces & quotes) and no more than 5 characters")
+
+    if prefix_location is None:
+        return await configData("prefix")
+
+
 async def guild_settings(guild: discord.Guild, setting, settings: Union[discord.Guild, dict] = None, value: Any = None,
                          get_setting_subset: bool = False, get_setting_value: bool = False, check_value: bool = False,
                          change: bool = False, setting_subset: str = None, insert_new: bool = False,

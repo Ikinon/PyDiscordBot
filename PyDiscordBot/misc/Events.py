@@ -51,7 +51,7 @@ class Events(commands.Cog):
 
         if self.bot.user in message.mentions:
             if (await DataUtils.guild_settings(message.guild, "prefixOnMention", get_setting_value=True))[0]:
-                return await message.channel.send(f"Prefix is: `{await DataUtils.configData('prefix')}`")
+                return await message.channel.send(f"Prefix is: `{await DataUtils.prefix(message.guild)}`")
 
 
 def setup(bot):
