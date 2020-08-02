@@ -28,13 +28,19 @@ class ErrorUtils(commands.Cog):
         elif isinstance(error, discord.errors.NotFound):
             return await MessagingUtils.send_embed_commandFail(ctx, f"{ctx.command}", "Could not find target")
 
+        elif isinstance(error, commands.CheckAnyFailure) or isinstance(error, commands.CheckFailure):
+            if ctx.command.module != 'PyDiscordBot.commands.Developer':
+                await MessagingUtils.send_embed_commandFail(ctx, "Check failure",
+                                                            f"You did not pass the requirements to run {ctx.command}")
+            return
+
         elif isinstance(error, discord.ext.commands.MissingPermissions):
             guild_data = (await DataUtils.guild_data(ctx.guild.id))
-            if guild_data.get("devPermOverride"):
+            if guild_data.get("devPermOverride") is not None:
                 if await CommandUtils.Checks.User(ctx.author).is_developer():
                     return await ctx.reinvoke()
-            elif (await DataUtils.guild_settings(ctx.guild, "showPermErrors", guild_data.get("guild_settings"),
-                                                 get_setting_value=True))[0]:
+            if (await DataUtils.guild_settings(ctx.guild, "showPermErrors", guild_data.get("guild_settings"),
+                                               get_setting_value=True))[0]:
                 return await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
                                                                    f"You need the permission(s) {''.join(error.missing_perms)} for {ctx.command}!")
 
