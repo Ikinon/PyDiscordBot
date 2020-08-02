@@ -65,18 +65,29 @@ class Management(commands.Cog):
             embed.description = "Disabled"
         await ctx.send(embed=embed)
 
-    # TODO: Learn subcommands so people can run commands like prefix and get prefix without restrictive permissions
-    @commands.command()
-    @commands.guild_only()
+    @commands.group(name="prefix", invoke_without_command=True)
+    async def prefix(self, ctx):
+        """Return/Set the guild prefix"""
+        await MessagingUtils.send_embed_commandInfo(ctx, "",
+                                                    f"Current server prefix is : `{await DataUtils.prefix(ctx.guild)}`")
+
+    @prefix.command(name="change")
     @commands.has_permissions(manage_guild=True)
-    async def prefix(self, ctx, *, prefix: str = None):
+    async def prefix_change(self, ctx, new_prefix: str):
+        """Changes the prefix of the server"""
         current_prefix = await DataUtils.prefix(ctx.guild)
-        if prefix is None:
-            return await MessagingUtils.send_embed_commandInfo(ctx, "", f"Current server prefix is: `{current_prefix}`")
-        elif prefix:
-            await DataUtils.prefix(ctx.guild, change=True, new_prefix=prefix)
-            await MessagingUtils.send_embed_commandInfo(ctx, "", f"New prefix is `{prefix}`\n"
-                                                                 f"(Old prefix was: `{current_prefix}`)")
+        await DataUtils.prefix(ctx.guild, change=True, new_prefix=new_prefix)
+        await MessagingUtils.send_embed_commandInfo(ctx, "", f"New prefix is `{new_prefix}`\n"
+                                                             f"(Old prefix was: `{current_prefix}`)")
+
+    @prefix.command(name="reset", aliases=["clear"])
+    @commands.has_permissions(manage_guild=True)
+    async def prefix_reset(self, ctx):
+        """Resets the prefix of the server back to the default"""
+        old_prefix = await DataUtils.prefix(ctx.guild)
+        prefix = await DataUtils.prefix(ctx.guild, change=True)
+        await MessagingUtils.send_embed_commandInfo(ctx, "", f"Prefix reset to: `{prefix}`\n"
+                                                             f"(Old prefix was: `{old_prefix}`)")
 
 
 def setup(bot):

@@ -31,7 +31,7 @@ class ErrorUtils(commands.Cog):
         elif isinstance(error, commands.CheckAnyFailure) or isinstance(error, commands.CheckFailure):
             if ctx.command.module != 'PyDiscordBot.commands.Developer':
                 await MessagingUtils.send_embed_commandFail(ctx, "Check failure",
-                                                            f"You did not pass the requirements to run {ctx.command}")
+                                                            f"You did not pass the requirements to run `{ctx.command}`")
             return
 
         elif isinstance(error, discord.ext.commands.MissingPermissions):
