@@ -192,8 +192,24 @@ class Utils():
             embed.add_field(name="Total Warnings", value=len(warnings))
             await self.__mod_action_complete(member, reason, embed)
 
-    async def memberwarnings(self, member):
+    async def remove_warning(self, member, warning_id: int, reason: str = None):
         warnings = (await DataUtils.guild_moderation(self.ctx.guild, member, "warnings", get_values=True))
+        del warnings[warning_id - 1]  # -1 because 0 index
+        await MessagingUtils.send_embed_commandSuccess(self.ctx, "",
+                                                       f"Warning with id {warning_id} has been removed from {member}")
+        await self.__modlog(member, reason=await self.reason_convert(reason))
+
+    async def clear_warnings(self, member, reason: str = None):
+        await DataUtils.guild_moderation(self.ctx.guild, member, "warnings", remove=True)
+        await MessagingUtils.send_embed_commandSuccess(self.ctx, "", f"All warnings have been cleared from {member}")
+        await self.__modlog(member, reason=await self.reason_convert(reason))
+
+    async def memberwarnings(self, member):
+        try:
+            warnings = (await DataUtils.guild_moderation(self.ctx.guild, member, "warnings", get_values=True))
+            if warnings is None: raise AttributeError  # AttributeError: nothing related in database, None: when no key
+        except AttributeError:  
+            return await MessagingUtils.send_embed_commandInfo(self.ctx, f"Warnings for {member}", f"{member.name} has no warnings")
         # TODO: Should be a way to make this tidier, do that
         to_send = []
         id = 1

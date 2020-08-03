@@ -60,12 +60,25 @@ class Moderation(commands.Cog):
         """Warn a member"""
         await ModUtils.Utils(self.bot, ctx).warn(member, reason)
 
-    @commands.command()
+    @commands.group(name="warnings", invoke_without_command=True)
     @commands.guild_only()
-    @commands.has_permissions(kick_members=True)
     async def warnings(self, ctx, member: discord.Member):
         """Get warnings for a member"""
         await ModUtils.Utils(self.bot, ctx).memberwarnings(member)
+
+    @warnings.command(name="remove")
+    @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
+    async def warnings_remove(self, ctx, member: discord.Member, warning_id: int, reason=None):
+        """<member> <warning_id> Remove warnings for a member"""
+        await ModUtils.Utils(self.bot, ctx).remove_warning(member, warning_id)
+
+    @warnings.command(name="clear")
+    @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
+    async def warnings_clear(self, ctx, member: discord.Member, reason=None):
+        """<member> [reason] Clears all warnings from a member"""
+        await ModUtils.Utils(self.bot, ctx).clear_warnings(member, reason)
 
 
 def setup(bot):
