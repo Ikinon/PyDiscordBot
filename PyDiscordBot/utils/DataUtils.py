@@ -122,3 +122,29 @@ async def guild_settings(guild: discord.Guild, setting, settings: Union[discord.
             settings[setting_subset][setting] = value
         (await (guild_database())).update_many(dict({'_id': guild.id}), dict({'$set': {'guild_settings': settings}}))
     return tuple(to_ret)
+
+
+async def guild_moderation(guild: discord.Guild, user: Union[discord.Member, discord.User], custom: str,
+                           get_values: bool = False, change: bool = False, value=None, remove: bool = False):
+    """
+
+    :param guild: Retrieve/Append moderation values from
+    :param user: User to query
+    :param custom: Moderation key, example as 'warnings'
+    :param get_values: Return current value of key
+    :param change: Specify if key should be changed (if remove is True, this is automatically True)
+    :param value: New value for key
+    :param remove: Remove value for key (value unnecessary)
+    """
+    operator = ""
+    if remove is False:
+        operator = '$set'
+    elif remove is True:
+        operator = '$unset'
+    if change is True or remove is True:
+        if remove is True and value is None:
+            value = True  # Just need anything here
+        (await guild_database()).update_one(dict({'_id': guild.id}),
+                                            dict({operator: {f'guild_moderation.{str(user.id)}.{custom}': value}}))
+    if get_values:
+        return (await guild_data(guild.id)).get('guild_moderation').get(str(user.id)).get(custom)

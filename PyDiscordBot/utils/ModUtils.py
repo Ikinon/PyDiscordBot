@@ -14,7 +14,11 @@ class Utils():
         self.bot = bot
 
     async def reason_convert(self, argument=None) -> str:
-        ret = f'{self.ctx.author}: {argument}'
+        ret = ""
+        if argument is None:
+            ret = f'{self.ctx.author}: No reason given'
+        elif argument:
+            ret = f'{self.ctx.author}: {argument}'
 
         if len(ret) > 512:
             reason_max = 512 - len(ret) - len(argument)
@@ -170,25 +174,30 @@ class Utils():
             await self.__mod_action_complete(member, reason, embed)
 
     # TODO: Allow removing warnings
-    async def warn(self, member, reason=None):
+    async def warn(self, member, reason: str = None):
         if await self.__runchecks(member):
             reason = await self.reason_convert(reason)
-            warnings = []
             try:
-                warnings = (await DataUtils.guild_data(self.ctx.guild.id)).get('warnings').get(str(member.id))
+                warnings = (await DataUtils.guild_data(self.ctx.guild.id)).get('guild_moderation').get(
+                    str(member.id)).get("warnings")
+                if warnings is None: raise AttributeError
             except AttributeError:
-                (await DataUtils.guild_database()).update_one(dict({'_id': self.ctx.guild.id}),
-                                                              dict({'$set': {'warnings': {str(member.id): [reason]}}}))
+                warnings = [reason]
+                await DataUtils.guild_moderation(self.ctx.guild, member, "warnings", change=True, value=[reason])
             else:
                 warnings.append(reason)
-                (await DataUtils.guild_database()).update_many(dict({'_id': self.ctx.guild.id}),
-                                                               dict({'$set': {'warnings': {str(member.id): warnings}}}))
-
-            embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Warn User", f"{member} has been warned")
+                await DataUtils.guild_moderation(self.ctx.guild, member, "warnings", change=True, value=warnings)
+            embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Warn Member", f"{member} has been warned")
             embed.add_field(name="Reason", value=reason)
             embed.add_field(name="Total Warnings", value=len(warnings))
             await self.__mod_action_complete(member, reason, embed)
 
     async def memberwarnings(self, member):
-        warnings = '\n'.join((await DataUtils.guild_data(self.ctx.guild.id)).get('warnings').get(str(member.id)))
-        await MessagingUtils.send_embed_commandInfo(self.ctx, f"Warnings for {member}", warnings)
+        warnings = (await DataUtils.guild_moderation(self.ctx.guild, member, "warnings", get_values=True))
+        # TODO: Should be a way to make this tidier, do that
+        to_send = []
+        id = 1
+        for warn in warnings:
+            to_send.append(f"`{id}`: {warn}\n")
+            id += 1
+        await MessagingUtils.send_embed_commandInfo(self.ctx, f"Warnings for {member}", ''.join(to_send))
