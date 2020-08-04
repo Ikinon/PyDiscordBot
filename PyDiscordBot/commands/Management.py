@@ -44,19 +44,19 @@ class Management(commands.Cog):
             mod_cmds = [str(x) for x in (self.bot.get_cog("Moderation").get_commands()) + ["un-mute", "ALL", "NONE"]]
             if ',' in cmds:
                 if set(cmds).issubset(mod_cmds):
-                    await ModUtils.Utils(self.bot, ctx).update_modlog_status(cmds)
+                    await ModUtils.Actions(self.bot, ctx).update_modlog_status(cmds)
                 elif set(cmds):
                     return await MessagingUtils.send_embed_commandWarning(ctx, f"{ctx.command} Settings",
                                                                           f"1+ of {cmds} are not commands, commands are:\n {' '.join(mod_cmds)}")
             elif cmds:
                 if cmds in mod_cmds:
-                    await ModUtils.Utils(self.bot, ctx).update_modlog_status(cmds)
+                    await ModUtils.Actions(self.bot, ctx).update_modlog_status(cmds)
                 elif cmds:
                     return await MessagingUtils.send_embed_commandWarning(ctx, f"{ctx.command} Settings",
                                                                           f"{cmds} is not a command, commands are:\n {' '.join(mod_cmds)}")
         if channel is not None:
-            await ModUtils.Utils(self.bot, ctx).update_modlog_channel(int(channel))
-        settings = await ModUtils.Utils(self.bot, ctx).modlog_status()
+            await ModUtils.Actions(self.bot, ctx).update_modlog_channel(int(channel))
+        settings = await ModUtils.Actions(self.bot, ctx).modlog_status()
         embed = await MessagingUtils.embed_commandInfo(ctx, "modlog Settings", "")
         if settings is not False:
             embed.add_field(name="Commands under modlog", value=' '.join(settings[1]), inline=False)
