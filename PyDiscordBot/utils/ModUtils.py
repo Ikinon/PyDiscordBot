@@ -84,17 +84,17 @@ class Utils:
     async def __create_role(self, name, permissions: discord.permissions, reason=None) -> discord.Role:
         return await self.ctx.guild.create_role(name=name, permissions=permissions, reason=reason)
 
-    def send_modlog_reply(self):
-        asyncio.get_event_loop().create_task(self.ctx.send(embed=self.reply))
-        if not self.no_modlog:
-            asyncio.get_event_loop().create_task(self.__modlog(self.target, self.reason))
-
     def send_modlog(self):
         if not self.no_modlog:
             asyncio.get_event_loop().create_task(self.__modlog(self.target, self.reason))
 
     def send_reply(self):
         asyncio.get_event_loop().create_task(self.ctx.send(embed=self.reply))
+
+    def send_modlog_reply(self):
+        asyncio.get_event_loop().create_task(self.ctx.send(embed=self.reply))
+        if not self.no_modlog:
+            asyncio.get_event_loop().create_task(self.__modlog(self.target, self.reason))
 
 
 class Actions(Utils):
@@ -132,25 +132,28 @@ class Actions(Utils):
     async def kick(self, member: discord.Member, reason=None):
         reason = await self.__reason_convert(reason)
         await member.kick(reason=reason)
-        return Utils(self.bot, self.ctx, target=member, reason=reason)
+        reply = await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Kicked member", f"{member} has been kicked")
+        return Utils(self.bot, self.ctx, reply, target=member, reason=reason)
 
     async def ban(self, member: discord.Member, reason=None):
         reason = await self.__reason_convert(reason)
         await member.ban(reason=reason)
-        return Utils(self.bot, self.ctx, target=member, reason=reason)
+        reply = await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Ban member", f"{member} has been banned")
+        return Utils(self.bot, self.ctx, reply, member, reason)
 
     async def softban(self, member: discord.Member, reason=None):
         reason = await self.__reason_convert(reason)
         await member.ban(reason=reason), await member.unban(reason=reason)
         reply = await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Soft-banned member",
-                                                               f"{member} has been soft-banned!")
+                                                               f"{member} has been soft-banned")
         return Utils(self.bot, self.ctx, reply, member, reason)
 
     async def forceban(self, user, reason=None):
         user = await self.bot.fetch_user(user)
         reason = await self.__reason_convert(reason)
         await self.ctx.guild.ban(user, reason=reason)
-        return Utils(self.bot, self.ctx, target=user, reason=reason)
+        reply = await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Force ban user", f"{user} has been banned")
+        return Utils(self.bot, self.ctx, reply, user, reason)
 
     async def unban(self, user, reason=None):
         bans = await self.ctx.guild.bans()
@@ -159,7 +162,8 @@ class Actions(Utils):
             if ban.user.name == str(user) or str(ban.user.id) == str(user):
                 user = ban.user
                 await self.ctx.guild.unban(ban.user, reason=reason)
-        return Utils(self.bot, self.ctx, target=user, reason=reason)
+        reply = await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Unban user", f"{user} has been un-banned")
+        return Utils(self.bot, self.ctx, reply, user, reason)
 
     # TODO: Timed mute
     async def mute(self, member: discord.Member, reason: str = None):
