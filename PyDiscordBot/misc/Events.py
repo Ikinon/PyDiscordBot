@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import suppress
 
 import discord
 from discord.ext import commands
@@ -9,10 +10,8 @@ from PyDiscordBot.utils import DataUtils
 async def after_invoke(ctx):
     if (await DataUtils.guild_settings(ctx.guild, 'deleteCommand', get_setting_value=True))[0]:
         if ctx.command.module != 'PyDiscordBot.commands.Developer':
-            try:
+            with suppress(Exception):  # Oh well, no perms
                 await ctx.message.delete()
-            except:
-                pass
 
 
 async def before_invoke(message):
@@ -41,6 +40,14 @@ class Events(commands.Cog):
                 {"general": {"deleteCommand": False, "showPermErrors": True, "prefixOnMention": True},
                  "moderation": {"mute_role": 0}}, }]
         (await DataUtils.guild_database()).insert_many(toinsert)
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        if await DataUtils.guild_moderation(member.guild, member, "muted", get_values=True):
+            with suppress(AttributeError, commands.BotMissingPermissions):  # No role/no perms, whatever
+                await member.add_roles(member.guild.get_role(
+                    (await DataUtils.guild_settings(member.guild, "mute_role", get_setting_value=True))[0]),
+                                       reason="AutoMod: Member was previously muted.")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

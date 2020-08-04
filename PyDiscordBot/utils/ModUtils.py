@@ -160,10 +160,12 @@ class Utils():
                                     value=f"Failed to create channel permission entries for {failed} channel(s). Please check permissions.")
             if role in member.roles:
                 await member.remove_roles(role, reason=reason)
+                await DataUtils.guild_moderation(self.ctx.guild, member, "muted", remove=True)
                 embed.description = f"{member} has been un-muted"
                 self.ctx.command = "un-mute"
             else:
                 await member.add_roles(role, reason=reason)
+                await DataUtils.guild_moderation(self.ctx.guild, member, "muted", change=True, value=True)
             if isinstance(member.voice, discord.member.VoiceState):
                 if member.voice.channel.permissions_for(self.ctx.guild.me).mute_members:
                     if self.ctx.command == "un-mute":
