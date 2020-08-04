@@ -195,6 +195,7 @@ class Utils():
     async def remove_warning(self, member, warning_id: int, reason: str = None):
         warnings = (await DataUtils.guild_moderation(self.ctx.guild, member, "warnings", get_values=True))
         del warnings[warning_id - 1]  # -1 because 0 index
+        await DataUtils.guild_moderation(self.ctx.guild, member, "warnings", change=True, value=warnings)
         await MessagingUtils.send_embed_commandSuccess(self.ctx, "",
                                                        f"Warning with id {warning_id} has been removed from {member}")
         await self.__modlog(member, reason=await self.reason_convert(reason))
@@ -207,8 +208,9 @@ class Utils():
     async def memberwarnings(self, member):
         try:
             warnings = (await DataUtils.guild_moderation(self.ctx.guild, member, "warnings", get_values=True))
-            if warnings is None: raise AttributeError  # AttributeError: nothing related in database, None: when no key
-        except AttributeError:  
+            # AttributeError: nothing related in database, None: when no key, 0: when list(key type) is empty
+            if warnings is None or len(warnings) == 0: raise AttributeError
+        except AttributeError:
             return await MessagingUtils.send_embed_commandInfo(self.ctx, f"Warnings for {member}", f"{member.name} has no warnings")
         # TODO: Should be a way to make this tidier, do that
         to_send = []
