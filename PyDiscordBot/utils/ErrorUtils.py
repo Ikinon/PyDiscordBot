@@ -24,15 +24,22 @@ class ErrorUtils(commands.Cog):
 
         if isinstance(error, ignored):
             return
+
+        if isinstance(error, commands.NoPrivateMessage):
+            return await MessagingUtils.send_embed_commandFail(ctx, "",
+                                                               f"{ctx.command} cannot be run in private messages.")
+
         # TODO: Find a neat way to make this more specific, such as what the user inputted to make the target unknown
         elif isinstance(error, discord.errors.NotFound):
-            return await MessagingUtils.send_embed_commandFail(ctx, f"{ctx.command}", "Could not find target")
+            return await MessagingUtils.send_embed_commandFail(ctx, f"{str(ctx.command).title()}",
+                                                               "Could not find target")
 
-        elif isinstance(error, commands.CheckAnyFailure) or isinstance(error, commands.CheckFailure):
-            if ctx.command.module != 'PyDiscordBot.commands.Developer':
-                await MessagingUtils.send_embed_commandFail(ctx, "Check failure",
-                                                            f"You did not pass the requirements to run `{ctx.command}`")
-            return
+        elif isinstance(error, commands.MissingRequiredArgument):
+            return await MessagingUtils.send_embed_commandFail(ctx, f"{str(ctx.command).title()}",
+                                                               f"Missing required argument `{error.param.name}`")
+
+        elif isinstance(error, commands.BadArgument):
+            return await MessagingUtils.send_embed_commandFail(ctx, f"{str(ctx.command).title()}", f"`{error.args[0]}`")
 
         elif isinstance(error, discord.ext.commands.MissingPermissions):
             guild_data = (await DataUtils.guild_data(ctx.guild.id))
@@ -48,6 +55,11 @@ class ErrorUtils(commands.Cog):
             return await MessagingUtils.send_embed_commandFail(ctx, "Missing Permissions",
                                                                f"I am missing the permission(s) {''.join(error.missing_perms)} for {ctx.command}!")
 
+        elif isinstance(error, commands.CheckAnyFailure) or isinstance(error, commands.CheckFailure):
+            if ctx.command.module != 'PyDiscordBot.commands.Developer':
+                return await MessagingUtils.send_embed_commandFail(ctx, "Check failure",
+                                                                   f" failed requirements to run `{ctx.command}`")
+
         elif isinstance(error, commands.DisabledCommand):
             return await ctx.send(f'{ctx.command} has been disabled.')
 
@@ -58,7 +70,7 @@ class ErrorUtils(commands.Cog):
         if ctx.guild:
             err += f"\nGuild: {ctx.guild.name}({ctx.guild.id})\n\n{trace_error}"
         elif not ctx.guild:
-            err += f"Guild: No guild\n\n{trace_error}"
+            err += f"\nGuild: No guild\n\n{trace_error}"
 
         async with ClientSession() as session:
             async with session.post('https://hasteb.in/documents', data=''.join(''.join(err))) as post:
