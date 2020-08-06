@@ -29,7 +29,7 @@ class Moderation(commands.Cog):
             if await ModUtils.Utils(self.bot, ctx).runchecks(target):
                 (await ModUtils.Actions(self.bot, ctx).ban(target, reason)).send_modlog_reply()
         if isinstance(target, int):
-            await ModUtils.Actions(self.bot, ctx).forceban(target, reason)
+            (await ModUtils.Actions(self.bot, ctx).forceban(target, reason)).send_modlog_reply()
 
     @commands.command()
     @commands.guild_only()
@@ -68,7 +68,7 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     async def warnings(self, ctx, member: discord.Member):
         """Get warnings for a member"""
-        (await ModUtils.Actions(self.bot, ctx).memberwarnings(member)).send_modlog_reply()
+        (await ModUtils.Actions(self.bot, ctx).memberwarnings(member)).send_reply()
 
     @warnings.command(name="remove")
     @commands.guild_only()

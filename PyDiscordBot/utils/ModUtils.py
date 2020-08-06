@@ -46,8 +46,8 @@ class Utils:
                 if send_reply:
                     await self.ctx.send(embed=embed)
                 return False
-            if target.top_role > self.ctx.guild.me.top_role:
-                embed.description = f"My top role is lower than {target.name} in role hierarchy!"
+            if target.top_role >= self.ctx.guild.me.top_role:
+                embed.description = f"My top role is not higher than {target.name} in role hierarchy!"
                 if send_reply:
                     await self.ctx.send(embed=embed)
                 return False
@@ -81,9 +81,6 @@ class Utils:
             if str(self.ctx.command) in modlog[1]:
                 await channel.send(embed=embed)
 
-    async def __create_role(self, name, permissions: discord.permissions, reason=None) -> discord.Role:
-        return await self.ctx.guild.create_role(name=name, permissions=permissions, reason=reason)
-
     def send_modlog(self):
         if not self.no_modlog:
             asyncio.get_event_loop().create_task(self.__modlog(self.target, self.reason))
@@ -114,6 +111,9 @@ class Actions(Utils):
             raise commands.BadArgument(f'reason is too long ({len(argument)}/{reason_max})')
         return ret
 
+    async def __create_role(self, name, permissions: discord.permissions, reason=None) -> discord.Role:
+        return await self.ctx.guild.create_role(name=name, permissions=permissions, reason=reason)
+
     async def modlog_status(self) -> Union[list, bool]:
         modlog_status = (await DataUtils.guild_data(self.ctx.guild.id)).get('modlog_status')
         if modlog_status == "NONE":
@@ -132,27 +132,27 @@ class Actions(Utils):
     async def kick(self, member: discord.Member, reason=None):
         reason = await self.__reason_convert(reason)
         await member.kick(reason=reason)
-        reply = await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Kicked member", f"{member} has been kicked")
+        reply = await MessagingUtils.embed_commandSuccess(self.ctx, f"Kicked member", f"{member} has been kicked")
         return Utils(self.bot, self.ctx, reply, target=member, reason=reason)
 
     async def ban(self, member: discord.Member, reason=None):
         reason = await self.__reason_convert(reason)
         await member.ban(reason=reason)
-        reply = await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Ban member", f"{member} has been banned")
+        reply = await MessagingUtils.embed_commandSuccess(self.ctx, f"Ban member", f"{member} has been banned")
         return Utils(self.bot, self.ctx, reply, member, reason)
 
     async def softban(self, member: discord.Member, reason=None):
         reason = await self.__reason_convert(reason)
         await member.ban(reason=reason), await member.unban(reason=reason)
-        reply = await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Soft-banned member",
-                                                               f"{member} has been soft-banned")
+        reply = await MessagingUtils.embed_commandSuccess(self.ctx, f"Soft-banned member",
+                                                          f"{member} has been soft-banned")
         return Utils(self.bot, self.ctx, reply, member, reason)
 
     async def forceban(self, user, reason=None):
         user = await self.bot.fetch_user(user)
         reason = await self.__reason_convert(reason)
         await self.ctx.guild.ban(user, reason=reason)
-        reply = await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Force ban user", f"{user} has been banned")
+        reply = await MessagingUtils.embed_commandSuccess(self.ctx, f"Force ban user", f"{user} has been banned")
         return Utils(self.bot, self.ctx, reply, user, reason)
 
     async def unban(self, user, reason=None):
@@ -162,7 +162,7 @@ class Actions(Utils):
             if ban.user.name == str(user) or str(ban.user.id) == str(user):
                 user = ban.user
                 await self.ctx.guild.unban(ban.user, reason=reason)
-        reply = await MessagingUtils.send_embed_commandSuccess(self.ctx, f"Unban user", f"{user} has been un-banned")
+        reply = await MessagingUtils.embed_commandSuccess(self.ctx, f"Unban user", f"{user} has been un-banned")
         return Utils(self.bot, self.ctx, reply, user, reason)
 
     # TODO: Timed mute
@@ -208,7 +208,6 @@ class Actions(Utils):
                 embed.add_field(name="Voice Mute", value=f"{embed.description}")
         return Utils(self.bot, self.ctx, embed, member, reason)
 
-    # TODO: Allow removing warnings
     async def warn(self, member, reason: str = None):
         reason = await self.__reason_convert(reason)
         try:
