@@ -38,16 +38,17 @@ class Events(commands.Cog):
         toinsert = [
             {"_id": guild.id, "guild_id": guild.id, "modlog_status": "NONE", "guild_settings":
                 {"general": {"deleteCommand": False, "showPermErrors": True, "prefixOnMention": True},
-                 "moderation": {"mute_role": 0}}, }]
+                 "moderation": {"mute_role": 0, "muteOnRejoin": True}}, }]
         (await DataUtils.guild_database()).insert_many(toinsert)
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        if await DataUtils.guild_moderation(member.guild, member, "muted", get_values=True):
-            with suppress(AttributeError, commands.BotMissingPermissions):  # No role/no perms, whatever
-                await member.add_roles(member.guild.get_role(
-                    (await DataUtils.guild_settings(member.guild, "mute_role", get_setting_value=True))[0]),
-                                       reason="AutoMod: Member was previously muted.")
+        if (await DataUtils.guild_settings(member.guild, "muteOnRejoin", get_setting_value=True))[0]:
+            if await DataUtils.guild_moderation(member.guild, member, "muted", get_values=True):
+                with suppress(AttributeError, commands.BotMissingPermissions):  # No role/no perms, whatever
+                    await member.add_roles(member.guild.get_role(
+                        (await DataUtils.guild_settings(member.guild, "mute_role", get_setting_value=True))[0]),
+                        reason="AutoMod: Member was previously muted.")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
