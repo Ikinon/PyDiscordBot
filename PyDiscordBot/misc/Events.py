@@ -46,7 +46,7 @@ class Events(commands.Cog):
     async def on_member_join(self, member):
         if (await DataUtils.guild_settings(member.guild, "muteOnRejoin", get_setting_value=True))[0]:
             if await DataUtils.guild_moderation(member.guild, member, "muted", get_values=True):
-                with suppress(AttributeError, commands.BotMissingPermissions):  # No role/no perms, whatever
+                with suppress(AttributeError, discord.Forbidden):  # No role/no perms, whatever
                     await member.add_roles(member.guild.get_role(
                         (await DataUtils.guild_settings(member.guild, "mute_role", get_setting_value=True))[0]),
                         reason="AutoMod: Member was previously muted.")
