@@ -23,10 +23,11 @@ class Informational(commands.Cog):
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="User ID", value=user.id, inline=True)
         embed.add_field(name="User Created", value=user.created_at.date(), inline=True)
-        if user in ctx.guild.members:
-            member = ctx.guild.get_member(user.id)
-            embed.add_field(name="Status", value=member.status, inline=True)
-            embed.add_field(name="Joined At", value=member.joined_at.date(), inline=True)
+        if ctx.guild is not None:
+            if user in ctx.guild.members:
+                member = ctx.guild.get_member(user.id)
+                embed.add_field(name="Status", value=member.status, inline=True)
+                embed.add_field(name="Joined At", value=member.joined_at.date(), inline=True)
         await ctx.send(embed=embed)
 
     @commands.guild_only()
@@ -39,8 +40,8 @@ class Informational(commands.Cog):
                                                  f"ID: {guild.id}")
         embed.set_thumbnail(url=guild.icon_url)
         embed.add_field(name="Members", value=guild.member_count, inline=True)
-        embed.add_field(name="Channels", value=len(guild.channels), inline=True)
-        embed.add_field(name="Roles", value=len(guild.roles), inline=True)
+        embed.add_field(name="Channels", value=str(len(guild.channels)), inline=True)
+        embed.add_field(name="Roles", value=str(len(guild.roles)), inline=True)
         embed.add_field(name="Owner", value=guild.owner, inline=True)
         embed.add_field(name="Region", value=guild.region, inline=True)
         embed.add_field(name="Created at", value=guild.created_at.date())

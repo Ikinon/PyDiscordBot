@@ -8,10 +8,11 @@ from PyDiscordBot.utils import DataUtils
 
 
 async def after_invoke(ctx):
-    if (await DataUtils.guild_settings(ctx.guild, 'deleteCommand', get_setting_value=True))[0]:
-        if ctx.command.module != 'PyDiscordBot.commands.Developer':
-            with suppress(Exception):  # Oh well, no perms
-                await ctx.message.delete()
+    if ctx.guild is not None:
+        if (await DataUtils.guild_settings(ctx.guild, 'deleteCommand', get_setting_value=True))[0]:
+            if ctx.command.module != 'PyDiscordBot.commands.Developer':
+                with suppress(Exception):  # Oh well, no perms
+                    await ctx.message.delete()
 
 
 async def before_invoke(message):
