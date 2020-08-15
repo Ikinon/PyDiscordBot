@@ -76,9 +76,7 @@ class Utils:
             embed.add_field(name="Channel", value=f"{self.ctx.channel.name} ({self.ctx.channel.id})")
             embed.add_field(name="Reason", value=reason)
             channel = discord.utils.get(self.ctx.guild.channels, id=int(modlog[0]))
-            if modlog[1] == "ALL":
-                await channel.send(embed=embed)
-            if str(self.ctx.command) in modlog[1]:
+            if modlog[1] == "ALL" or (str(self.ctx.command) in modlog[1]):
                 await channel.send(embed=embed)
 
     def send_modlog(self):
@@ -190,7 +188,7 @@ class Actions(Utils):
                     failed = +1
             if failed != 0 & len(self.ctx.guild.channels) != failed:
                 embed.add_field(name="Permission Error",
-                                value=f"Failed to create channel permission entries for {failed} channel(s). Please check permissions.")
+                                value=f"Failed to create channel permission entries for {failed} channel(s).\n Please check permissions.")
         if role in member.roles:
             await member.remove_roles(role, reason=reason)
             await DataUtils.guild_moderation(self.ctx.guild, member, "muted", remove=True)
