@@ -1,13 +1,9 @@
 import json
 import os
-
+import asyncio
 from discord.ext import commands
 
 from PyDiscordBot.utils import DataUtils
-
-# config
-with open("config.json") as cfg:
-    config = json.load(cfg)
 
 
 class Bot(commands.Bot):
@@ -41,4 +37,4 @@ class Bot(commands.Bot):
         pass  # I need this for the on_message in events for some reason
 
 
-bot = Bot().run(config["token"])
+bot = Bot().run(asyncio.run(DataUtils.configData("token")))

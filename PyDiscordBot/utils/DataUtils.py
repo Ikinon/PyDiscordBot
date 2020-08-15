@@ -2,14 +2,15 @@ import json
 from distutils.util import strtobool
 from typing import Union, Any
 
-import aiofiles
 import discord
 import pymongo
 
+with open("config.json") as raw_cfg:
+    config = json.load(raw_cfg)
+
 
 async def configData(data):
-    async with aiofiles.open("config.json", mode="r") as f:
-        return (json.loads(await f.read()))[data]
+    return config[data]
 
 
 async def raw_db() -> pymongo.MongoClient:
@@ -20,8 +21,10 @@ async def guild_database() -> pymongo.collection.Collection:
     return (await raw_db())["database"]["guilds"]
 
 
-async def guild_data(guild_id: int) -> dict:
-    for x in (await guild_database()).find(dict({'_id': guild_id})):
+async def guild_data(guild_id: int, database: pymongo.collection.Collection = None) -> dict:
+    if database is None:
+        database = (await guild_database())
+    for x in database.find(dict({'_id': guild_id})):
         return x
 
 
@@ -29,8 +32,10 @@ async def blocked_database() -> pymongo.collection.Collection:
     return (await raw_db())["database"]["blocked_ids"]
 
 
-async def blocked_data(id: int) -> dict:
-    for x in (await blocked_database()).find(dict({'_id': id})):
+async def blocked_data(id: int, database: pymongo.collection.Collection = None) -> dict:
+    if database is None:
+        database = (await blocked_database())
+    for x in database.find(dict({'_id': id})):
         return x
 
 
