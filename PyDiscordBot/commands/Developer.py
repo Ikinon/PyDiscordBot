@@ -6,7 +6,7 @@ from contextlib import redirect_stdout
 import discord
 from discord.ext import commands
 
-from PyDiscordBot.utils import DataUtils, CommandUtils
+from PyDiscordBot.utils import DataUtils, CommandUtils, MessagingUtils
 
 
 class Developer(commands.Cog):
@@ -19,8 +19,12 @@ class Developer(commands.Cog):
 
     @commands.command(aliases=["exit"])
     async def shutdown(self, ctx):
-        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-        await self.bot.logout()
+        msg=await MessagingUtils.send_embed_commandInfo(ctx, "", "Sure?")
+        check=await MessagingUtils.message_timechecked(self.bot, ctx, msg, 10)
+        if check:
+            return await self.bot.logout()
+        else:
+            await msg.edit(content="Cancelled", embed=None)
 
     @commands.command(name="loadext")
     async def load_extension(self, ctx, value):
