@@ -13,12 +13,11 @@ async def configData(data):
     return config[data]
 
 
-async def raw_db() -> pymongo.MongoClient:
-    return pymongo.MongoClient(await configData("database"))
+raw_db = pymongo.MongoClient(config["database"])
 
 
 async def guild_database() -> pymongo.collection.Collection:
-    return (await raw_db())["database"]["guilds"]
+    return raw_db["database"]["guilds"]
 
 
 async def guild_data(guild_id: int, database: pymongo.collection.Collection = None) -> dict:
@@ -29,7 +28,7 @@ async def guild_data(guild_id: int, database: pymongo.collection.Collection = No
 
 
 async def blocked_database() -> pymongo.collection.Collection:
-    return (await raw_db())["database"]["blocked_ids"]
+    return raw_db["database"]["blocked_ids"]
 
 
 async def blocked_data(id: int, database: pymongo.collection.Collection = None) -> dict:
