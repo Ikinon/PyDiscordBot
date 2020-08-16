@@ -55,13 +55,14 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         context = await self.bot.get_context(message)
-        if context.command is not None:
-            if await before_invoke(message):
-                return await asyncio.gather(self.bot.invoke(context), after_invoke(context))
+        if context.guild is None or context.guild.me.permissions_in(context.channel).send_messages:
+            if context.command is not None:
+                if await before_invoke(message):
+                    return await asyncio.gather(self.bot.invoke(context), after_invoke(context))
 
-        if self.bot.user in message.mentions:
-            if (await DataUtils.guild_settings(message.guild, "prefixOnMention", get_setting_value=True))[0]:
-                return await message.channel.send(f"Prefix is: `{await DataUtils.prefix(message.guild)}`")
+            if self.bot.user in message.mentions:
+                if (await DataUtils.guild_settings(message.guild, "prefixOnMention", get_setting_value=True))[0]:
+                    return await message.channel.send(f"Prefix is: `{await DataUtils.prefix(message.guild)}`")
 
 
 def setup(bot):
