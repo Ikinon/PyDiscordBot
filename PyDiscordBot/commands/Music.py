@@ -53,7 +53,6 @@ class Music(commands.Cog):
             return await MessagingUtils.send_embed_commandError(ctx, "", "Could not find any songs with that query")
 
         embed = await MessagingUtils.embed_commandInfo(ctx, f"Found songs with query {query}", "")
-        MessagingUtils.rem
         max = 5
         if len(tracks) < 5:
             max = len(tracks)
