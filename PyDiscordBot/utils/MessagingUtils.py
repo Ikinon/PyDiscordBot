@@ -61,11 +61,12 @@ async def message_timecheckednumbers(bot: commands.Bot, ctx: commands.Context, m
             return check_reaction(reaction)
 
     async def remove_reactions(ctx, m):
-        m = await ctx.fetch_message(m.id)
+        m = await ctx.fetch_message(m.id)  # renew cache, we just added new reactions so its not in instance
         if m.channel.permissions_for(ctx.me).manage_messages:
             await m.clear_reactions()
-        for reaction in m.reactions:
-            await reaction.remove(ctx.me)
+        else:
+            for reaction in m.reactions:
+                await reaction.remove(ctx.me)
 
     try:
         msg.reactions, user = await bot.wait_for('reaction_add', timeout=timeout, check=check)
