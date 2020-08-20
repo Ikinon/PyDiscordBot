@@ -27,7 +27,7 @@ class Music(commands.Cog):
         player = self.wavelink.get_player(ctx.guild.id)
         if player.is_paused:
             await player.set_pause(False)
-            return await MessagingUtils.send_embed_commandSuccess(ctx, "", "Player Unpaused")
+            return await MessagingUtils.send_embed_commandWarning(ctx, "", "Player Unpaused")
         await player.set_pause(True)
         await MessagingUtils.send_embed_commandSuccess(ctx, "", "Paused playback")
 
