@@ -69,10 +69,12 @@ async def message_timecheckednumbers(bot: commands.Bot, ctx: commands.Context, m
 
     try:
         msg.reactions, user = await bot.wait_for('reaction_add', timeout=timeout, check=check)
-        asyncio.get_event_loop().create_task(remove_reactions(ctx, msg))
+        if remove_after:
+            asyncio.get_event_loop().create_task(remove_reactions(ctx, msg))
         return int(check_reaction(msg.reactions))
     except asyncio.TimeoutError:
-        asyncio.get_event_loop().create_task(remove_reactions(ctx, msg))
+        if remove_after:
+            asyncio.get_event_loop().create_task(remove_reactions(ctx, msg))
         return False
 
 
