@@ -4,7 +4,7 @@ import discord
 import wavelink
 from discord.ext import commands
 
-from PyDiscordBot.utils import MessagingUtils
+from PyDiscordBot.utils import MessagingUtils, DataUtils
 
 
 class Music(commands.Cog):
@@ -14,11 +14,13 @@ class Music(commands.Cog):
         if not hasattr(bot, 'wavelink'):
             self.bot.wavelink = self.wavelink
 
-        self.bot.loop.create_task(self.wavelink.initiate_node(host='127.0.0.1', port=2333,
-                                                              rest_uri='http://127.0.0.1:2333',
-                                                              password='youshallnotpass',
-                                                              identifier='TEST',
-                                                              region='us_central'))
+        node_config: dict = DataUtils.config["lavaplayer"]
+        self.bot.loop.create_task(self.wavelink.initiate_node(host=node_config.get("host"),
+                                                              port=node_config.get("port"),
+                                                              rest_uri=node_config.get("rest_uri"),
+                                                              identifier=node_config.get("identifier"),
+                                                              password=node_config.get("password"),
+                                                              region="eu_central"))
 
     @commands.command(name="pause")
     async def pause(self, ctx):
@@ -51,6 +53,7 @@ class Music(commands.Cog):
             return await MessagingUtils.send_embed_commandError(ctx, "", "Could not find any songs with that query")
 
         embed = await MessagingUtils.embed_commandInfo(ctx, f"Found songs with query {query}", "")
+        MessagingUtils.rem
         max = 5
         if len(tracks) < 5:
             max = len(tracks)

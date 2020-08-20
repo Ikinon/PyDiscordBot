@@ -3,5 +3,12 @@
   "prefix" : "",
   "database" : "",
   "developer_id" : [],
-  "webhook" : ""
+  "webhook" : "",
+  "lavaplayer": {
+    "host": "",
+    "port" : 0,
+    "rest_uri": "",
+    "identifier": "",
+    "password": ""
+  }
 }
