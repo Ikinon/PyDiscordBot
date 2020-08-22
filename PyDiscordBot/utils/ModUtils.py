@@ -92,10 +92,11 @@ class Utils:
             asyncio.get_event_loop().create_task(self.__modlog(self.target, self.reason))
 
 
-class Actions(Utils):
+class Actions:
 
     def __init__(self, bot: commands.Bot, ctx: commands.Context):
-        super().__init__(bot, ctx)
+        self.bot = bot
+        self.ctx = ctx
 
     async def __reason_convert(self, argument=None) -> str:
         ret = ""
