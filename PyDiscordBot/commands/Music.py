@@ -1,10 +1,11 @@
 import itertools
+from datetime import timedelta
 
 import discord
 import wavelink
 from discord.ext import commands
 
-from PyDiscordBot.utils import MessagingUtils, DataUtils
+from PyDiscordBot.utils import MessagingUtils, DataUtils, TimeUtils
 
 
 class Music(commands.Cog):
@@ -13,14 +14,13 @@ class Music(commands.Cog):
         self.wavelink = wavelink.Client(bot=bot)
         if not hasattr(bot, 'wavelink'):
             self.bot.wavelink = self.wavelink
-
-        node_config: dict = DataUtils.config["lavaplayer"]
-        self.bot.loop.create_task(self.wavelink.initiate_node(host=node_config.get("host"),
-                                                              port=node_config.get("port"),
-                                                              rest_uri=node_config.get("rest_uri"),
-                                                              identifier=node_config.get("identifier"),
-                                                              password=node_config.get("password"),
-                                                              region="eu_central"))
+            node_config: dict = DataUtils.config["lavaplayer"]
+            self.bot.loop.create_task(self.wavelink.initiate_node(host=node_config.get("host"),
+                                                                  port=node_config.get("port"),
+                                                                  rest_uri=node_config.get("rest_uri"),
+                                                                  identifier=node_config.get("identifier"),
+                                                                  password=node_config.get("password"),
+                                                                  region="eu_central"))
 
     @commands.command(name="pause")
     async def pause(self, ctx):
@@ -42,8 +42,26 @@ class Music(commands.Cog):
         if not player.is_connected:
             await ctx.invoke(self._join)
 
-        await ctx.send(f"Added {str(tracks[0])} to queue")
+        await MessagingUtils.send_embed_commandSuccess(ctx, "", f"Added {str(tracks[0])} to queue")
         await player.play(tracks[0])
+
+    @commands.command()
+    async def playing(self, ctx):
+        player = self.wavelink.get_player(ctx.guild.id)
+        song: wavelink.Track = player.current
+        if not song:
+            return await MessagingUtils.send_embed_commandInfo(ctx, "", "Not currently playing anything")
+        embed = await MessagingUtils.embed_commandInfo(ctx, f"Current track: {str(song)}", "")
+        embed.set_thumbnail(url=song.thumb)
+        position = TimeUtils.human_readable_time(timedelta(seconds=round(round(player.position) / 1000)).seconds)
+        duration = TimeUtils.human_readable_time(timedelta(seconds=round(round(song.duration) / 1000)).seconds)
+
+        embed.description = f"Duration: {position}/{duration}\n" \
+                            f"URL: [click]({song.uri})\n" \
+                            f"Author: {song.author}\n"
+        if player.is_paused:
+            embed.description += "\n**Currently paused**"
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def search(self, ctx, *, query: str):
