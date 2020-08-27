@@ -1,9 +1,15 @@
+import asyncio
 import json
+import uuid
+from datetime import datetime
 from distutils.util import strtobool
-from typing import Union, Any
+from typing import Union, Any, Optional
 
 import discord
 import pymongo
+from discord.ext import commands
+
+from PyDiscordBot.scheduling import Actions
 
 with open("config.json") as raw_cfg:
     config = json.load(raw_cfg)
@@ -36,6 +42,10 @@ async def blocked_data(id: int, database: pymongo.collection.Collection = None) 
         database = (await blocked_database())
     for x in database.find(dict({'_id': id})):
         return x
+
+
+async def future_actions_database() -> pymongo.collection.Collection:
+    return raw_db["database"]["future_actions"]
 
 
 async def prefix(prefix_location: discord.Guild = None, change: bool = False, new_prefix: str = None) -> str:
@@ -152,3 +162,54 @@ async def guild_moderation(guild: discord.Guild, user: Union[discord.Member, dis
                                             dict({operator: {f'guild_moderation.{str(user.id)}.{custom}': value}}))
     if get_values:
         return (await guild_data(guild.id)).get('guild_moderation').get(str(user.id)).get(custom)
+
+
+async def load_future_event(bot, guild_id, author_id, channel_id, future_time: datetime,
+                            task_name: str, ext_args: Optional[list] = None):
+    task = getattr(Actions, f'{task_name}')
+    if not callable(task):
+        raise TypeError('task must be a coroutine function')
+
+    future_time_seconds = round(future_time.timestamp() - datetime.now().timestamp())
+
+    async def future_event(bot, until, function, guild, author, channel, arguments):
+        await asyncio.sleep(until)
+        await function(bot, guild, author, channel, extra_args=arguments)
+
+    args = ()
+    if ext_args:
+        temp = []
+        for item in ext_args:
+            temp.append(item)
+        args = tuple(temp)
+    current_time = datetime.utcnow()
+    loop = asyncio.new_event_loop()
+    if current_time > future_time:
+        loop.create_task((future_event(bot, 0, task, guild_id, author_id, channel_id, args if args else None)))
+        loop.create_task(bot.get_channel(channel_id).send(content=f"<@{author_id}>, Late"))
+
+    if not current_time > future_time:
+        await future_event(bot, future_time_seconds, task, guild_id, author_id, channel_id, args if args else None)
+        loop.create_task(
+            future_event(bot, future_time_seconds, task, guild_id, author_id, channel_id, args if args else None))
+
+
+async def load_future_events(bot: commands.Bot):
+    data = await future_actions_database()
+    for event in data.find():
+        ext_args = event.get("ext_args") if event.get("ext_args") else None
+        await load_future_event(bot, event.get("guild_id"), event.get("author_id"), event.get("channel_id"),
+                                (event.get("execution_time")).parse(), event.get("task"), ext_args)
+
+
+async def create_future_event(bot: commands.Bot, guild: discord.Guild, author: discord.Member,
+                              channel: discord.TextChannel, run_at: datetime, task_name: str,
+                              extra_args: Optional[list] = None):
+    if not extra_args:
+        extra_args = []
+
+    to_insert = [{
+        "_id": uuid.uuid4(), "task": task_name, "guild_id": guild.id, "author_id": author.id,
+        "channel_id": channel.id, "ext_args": extra_args, "execution_time": run_at}]
+    (await future_actions_database()).insert_many(to_insert)
+    await load_future_event(bot, guild.id, author.id, channel.id, run_at, task_name, extra_args)

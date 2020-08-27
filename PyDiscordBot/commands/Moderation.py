@@ -1,9 +1,10 @@
+import datetime
 from typing import Union
 
 import discord
 from discord.ext import commands
 
-from PyDiscordBot.utils import ModUtils
+from PyDiscordBot.utils import ModUtils, DataUtils
 
 
 class Moderation(commands.Cog):
@@ -56,6 +57,18 @@ class Moderation(commands.Cog):
         """Mutes a member so they cannot type or speak"""
         if await ModUtils.Utils(self.bot, ctx).runchecks(member):
             (await ModUtils.Actions(self.bot, ctx).mute(member, reason)).send_modlog_reply()
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def tempmute(self, ctx, member: discord.Member, *, reason=None):
+        today = datetime.datetime.today()
+        time = today + datetime.timedelta(seconds=5)
+        if await ModUtils.Utils(self.bot, ctx).runchecks(member):
+            (await ModUtils.Actions(self.bot, ctx).mute(member, reason)).send_modlog_reply()
+
+        await DataUtils.create_future_event(self.bot, ctx.guild, ctx.author, ctx.channel, time, "unmute", [member.id])
 
     @commands.command()
     @commands.guild_only()
