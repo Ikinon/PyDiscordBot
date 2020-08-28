@@ -165,16 +165,19 @@ async def guild_moderation(guild: discord.Guild, user: Union[discord.Member, dis
 
 
 async def load_future_event(bot, guild_id, author_id, channel_id, future_time: datetime,
-                            task_name: str, ext_args: Optional[list] = None):
+                            task_name: str, task_uuid: Optional[uuid.UUID], delete_after: bool = True,
+                            ext_args: Optional[list] = None):
     task = getattr(Actions, f'{task_name}')
     if not callable(task):
         raise TypeError('task must be a coroutine function')
 
     future_time_seconds = round(future_time.timestamp() - datetime.now().timestamp())
 
-    async def future_event(bot, until, function, guild, author, channel, arguments):
+    async def future_event(until, function, guild, author, channel, arguments):
         await asyncio.sleep(until)
-        await function(bot, guild, author, channel, extra_args=arguments)
+        await function(bot, guild, author, channel, uuid=uuid, extra_args=arguments)
+        if delete_after:
+            await delete_future_event(task_uuid, task=False)
 
     args = ()
     if ext_args:
@@ -183,13 +186,18 @@ async def load_future_event(bot, guild_id, author_id, channel_id, future_time: d
             temp.append(item)
         args = tuple(temp)
     current_time = datetime.utcnow()
-
+    loop = asyncio.get_event_loop()
     if current_time > future_time:  # For some reason (such as downtime) we passed the execution time
-        asyncio.ensure_future(future_event(bot, 0, task, guild_id, author_id, channel_id, args if args else None))
+        asyncio.ensure_future(
+            future_event(0, task, guild_id, author_id, channel_id, args if args else None))
 
     if not current_time > future_time:
-        asyncio.ensure_future(
-            future_event(bot, future_time_seconds, task, guild_id, author_id, channel_id, args if args else None))
+        # asyncio.ensure_future(
+        #    future_event(bot, future_time_seconds, task, guild_id, author_id, channel_id, args if args else None,
+        #                 task_uuid))
+        loop.create_task(
+            future_event(future_time_seconds, task, guild_id, author_id, channel_id, args if args else None)
+            , name=f"FUTR-AXN:{task_uuid}")
 
 
 async def load_future_events(bot: commands.Bot):
@@ -197,18 +205,28 @@ async def load_future_events(bot: commands.Bot):
     for event in data.find():
         ext_args = event.get("ext_args") if event.get("ext_args") else None
         await load_future_event(bot, event.get("guild_id"), event.get("author_id"), event.get("channel_id"),
-                                event.get("execution_time"), event.get("task"), ext_args)
+                                event.get("execution_time"), event.get("task"), event.get("_id"),
+                                event.get("delete_after"), ext_args)
     return data.find().count()
 
 
 async def create_future_event(bot: commands.Bot, guild: discord.Guild, author: discord.Member,
                               channel: discord.TextChannel, run_at: datetime, task_name: str,
-                              extra_args: Optional[list] = None):
+                              extra_args: Optional[list] = None, delete_after: bool = True):
     if not extra_args:
         extra_args = []
-
+    id = uuid.uuid4()
+    creation_time = datetime.utcnow()
     to_insert = [{
-        "_id": uuid.uuid4(), "task": task_name, "guild_id": guild.id, "author_id": author.id,
-        "channel_id": channel.id, "ext_args": extra_args, "execution_time": run_at}]
+        "_id": id, "task": task_name, "guild_id": guild.id, "author_id": author.id,
+        "channel_id": channel.id, "ext_args": extra_args, "delete_after": delete_after, "creation_time": creation_time,
+        "execution_time": run_at}]
     (await future_actions_database()).insert_many(to_insert)
-    await load_future_event(bot, guild.id, author.id, channel.id, run_at, task_name, extra_args)
+    await load_future_event(bot, guild.id, author.id, channel.id, run_at, task_name, id, delete_after, extra_args)
+
+
+async def delete_future_event(uuid: uuid.UUID, database: bool = True, task: bool = True):
+    if database:
+        (await future_actions_database()).delete_one({"_id": uuid})
+    if task:
+        next(task for task in asyncio.all_tasks() if task.get_name() == f"FUTR-AXN:{uuid}").cancel()
