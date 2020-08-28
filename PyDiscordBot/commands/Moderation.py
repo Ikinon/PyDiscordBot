@@ -1,10 +1,9 @@
-import datetime
 from typing import Union
 
 import discord
 from discord.ext import commands
 
-from PyDiscordBot.utils import ModUtils, DataUtils
+from PyDiscordBot.utils import ModUtils, TimeUtils, MessagingUtils
 
 
 class Moderation(commands.Cog):
@@ -62,13 +61,12 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def tempmute(self, ctx, member: discord.Member, *, reason=None):
-        today = datetime.datetime.today()
-        time = today + datetime.timedelta(seconds=5)
+    async def tempmute(self, ctx, member: discord.Member, time: str, *, reason=None):
+        time = TimeUtils.parse_text_time(time)
+        if not time:
+            await MessagingUtils.send_embed_commandError(ctx, "", f"Please enter a valid duration! e.g. 2h2m")
         if await ModUtils.Utils(self.bot, ctx).runchecks(member):
-            (await ModUtils.Actions(self.bot, ctx).mute(member, reason)).send_modlog_reply()
-
-        await DataUtils.create_future_event(self.bot, ctx.guild, ctx.author, ctx.channel, time, "unmute", [member.id])
+            (await ModUtils.Actions(self.bot, ctx).tempmute(member, time, reason)).send_modlog_reply()
 
     @commands.command()
     @commands.guild_only()

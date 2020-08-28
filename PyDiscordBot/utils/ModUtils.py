@@ -1,11 +1,12 @@
 import asyncio
+import datetime
 from typing import Union
 
 import discord
 from discord.ext import commands
 
 from PyDiscordBot.misc import Constants
-from PyDiscordBot.utils import MessagingUtils, DataUtils
+from PyDiscordBot.utils import MessagingUtils, DataUtils, TimeUtils
 
 
 class Utils:
@@ -206,6 +207,17 @@ class Actions:
                     await member.edit(mute=True)
                 embed.add_field(name="Voice Mute", value=f"{embed.description}")
         return Utils(self.bot, self.ctx, embed, member, reason)
+
+    async def tempmute(self, member: discord.Member, unmute_at: datetime.timedelta, reason: str = None):
+        await self.mute(member, reason)
+        unmute_at_datetime = datetime.datetime.today() + unmute_at
+        await DataUtils.create_future_event(self.bot, self.ctx.guild, self.ctx.author, self.ctx.channel,
+                                            unmute_at_datetime, "unmute", [member.id])
+        until_date = TimeUtils.human_readable_datetime(unmute_at_datetime.utcnow())
+        time_until = TimeUtils.human_readable_time(int(unmute_at.total_seconds()))
+        embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Muted Member",
+                                                          f"{member} has been muted\n Until {until_date} (in {time_until})")
+        return Utils(self.bot, self.ctx, embed, member, await self.__reason_convert(reason))
 
     async def warn(self, member, reason: str = None):
         reason = await self.__reason_convert(reason)
