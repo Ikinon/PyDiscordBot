@@ -1,6 +1,6 @@
 import asyncio
 import json
-import uuid
+import uuid as _uuid
 from datetime import datetime
 from distutils.util import strtobool
 from typing import Union, Any, Optional
@@ -165,7 +165,7 @@ async def guild_moderation(guild: discord.Guild, user: Union[discord.Member, dis
 
 
 async def load_future_event(bot, guild_id, author_id, channel_id, future_time: datetime,
-                            task_name: str, task_uuid: Optional[uuid.UUID], delete_after: bool = True,
+                            task_name: str, task__uuid: Optional[_uuid.UUID], delete_after: bool = True,
                             ext_args: Optional[list] = None):
     task = getattr(Actions, f'{task_name}')
     if not callable(task):
@@ -175,9 +175,9 @@ async def load_future_event(bot, guild_id, author_id, channel_id, future_time: d
 
     async def future_event(until, function, guild, author, channel, arguments):
         await asyncio.sleep(until)
-        await function(bot, guild, author, channel, uuid=uuid, extra_args=arguments)
+        await function(bot, guild, author, channel, _uuid=_uuid, extra_args=arguments)
         if delete_after:
-            await delete_future_event(task_uuid, task=False)
+            await delete_future_event(task__uuid, task=False)
 
     args = ()
     if ext_args:
@@ -192,12 +192,9 @@ async def load_future_event(bot, guild_id, author_id, channel_id, future_time: d
             future_event(0, task, guild_id, author_id, channel_id, args if args else None))
 
     if not current_time > future_time:
-        # asyncio.ensure_future(
-        #    future_event(bot, future_time_seconds, task, guild_id, author_id, channel_id, args if args else None,
-        #                 task_uuid))
         loop.create_task(
             future_event(future_time_seconds, task, guild_id, author_id, channel_id, args if args else None)
-            , name=f"FUTR-AXN:{task_uuid}")
+            , name=f"FUTR-AXN:{task__uuid}")
 
 
 async def load_future_events(bot: commands.Bot):
@@ -215,17 +212,17 @@ async def create_future_event(bot: commands.Bot, guild: discord.Guild, author: d
                               extra_args: Optional[list] = None, delete_after: bool = True):
     if not extra_args:
         extra_args = []
-    id = uuid.uuid4()
+    _id = _uuid.uuid4()
     creation_time = datetime.utcnow()
     to_insert = [{
-        "_id": id, "task": task_name, "guild_id": guild.id, "author_id": author.id,
+        "_id": _id, "task": task_name, "guild_id": guild.id, "author_id": author.id,
         "channel_id": channel.id, "ext_args": extra_args, "delete_after": delete_after, "creation_time": creation_time,
         "execution_time": run_at}]
     (await future_actions_database()).insert_many(to_insert)
-    await load_future_event(bot, guild.id, author.id, channel.id, run_at, task_name, id, delete_after, extra_args)
+    await load_future_event(bot, guild.id, author.id, channel.id, run_at, task_name, _id, delete_after, extra_args)
 
 
-async def delete_future_event(uuid: uuid.UUID, database: bool = True, task: bool = True):
+async def delete_future_event(uuid: _uuid.UUID, database: bool = True, task: bool = True):
     if database:
         (await future_actions_database()).delete_one({"_id": uuid})
     if task:
