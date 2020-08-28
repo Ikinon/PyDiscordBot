@@ -5,10 +5,7 @@ import discord
 from discord.ext import commands
 
 from PyDiscordBot.utils import MessagingUtils
-
-
-def human_time(time: datetime):
-    return time.strftime("%A %d %B %Y at %H:%M UTC")  # day date month year time
+from PyDiscordBot.utils.TimeUtils import human_readable_datetime
 
 
 class Informational(commands.Cog):
@@ -28,12 +25,12 @@ class Informational(commands.Cog):
         embed = await MessagingUtils.embed_commandInfo(ctx, f"{user}", "")
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="User ID", value=user.id, inline=False)
-        embed.add_field(name="User Created", value=human_time(user.created_at), inline=False)
+        embed.add_field(name="User Created", value=human_readable_datetime(user.created_at), inline=False)
         if ctx.guild is not None:
             if user in ctx.guild.members:
                 member = ctx.guild.get_member(user.id)
                 embed.add_field(name="Status", value=member.status, inline=False)
-                embed.add_field(name="Joined At", value=human_time(member.joined_at), inline=False)
+                embed.add_field(name="Joined At", value=human_readable_datetime(member.joined_at), inline=False)
         await ctx.send(embed=embed)
 
     @commands.guild_only()
