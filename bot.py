@@ -1,6 +1,6 @@
-import json
-import os
 import asyncio
+import os
+
 from discord.ext import commands
 
 from PyDiscordBot.utils import DataUtils
@@ -11,10 +11,18 @@ class Bot(commands.Bot):
     async def get_prefix(bot, message):
         return await DataUtils.prefix(message.guild)
 
+    async def load_events(self):
+        await self.wait_until_ready()
+        events = await DataUtils.load_future_events(self)
+        print(f"Done loading {events} future actions")
+
     def __init__(self):
         super().__init__(command_prefix=self.get_prefix)
+        print("Loading future actions")
+        asyncio.ensure_future(self.load_events())
+        self.load_plugins()
+        print(f"Loaded {len(self.extensions)} extensions")
 
-    # Plugin Loader
     def load_plugins(self):
         for r, d, f in os.walk("PyDiscordBot/"):
             for file in f:
@@ -28,10 +36,7 @@ class Bot(commands.Bot):
                             print("{0}: {1}".format(type(e).__name__, e))
 
     async def on_ready(self):
-        Bot.load_plugins(self)
-        print(f"Bot name: {self.user.name}\n"
-              f"Bot ID: {self.user.id}\n"
-              "Successful Login")
+        print(f"Connected as: {self.user} - {self.user.id}\n")
 
     async def on_message(self, message):
         pass  # I need this for the on_message in events for some reason

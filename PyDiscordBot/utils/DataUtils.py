@@ -183,14 +183,12 @@ async def load_future_event(bot, guild_id, author_id, channel_id, future_time: d
             temp.append(item)
         args = tuple(temp)
     current_time = datetime.utcnow()
-    loop = asyncio.new_event_loop()
-    if current_time > future_time:
-        loop.create_task((future_event(bot, 0, task, guild_id, author_id, channel_id, args if args else None)))
-        loop.create_task(bot.get_channel(channel_id).send(content=f"<@{author_id}>, Late"))
+
+    if current_time > future_time:  # For some reason (such as downtime) we passed the execution time
+        asyncio.ensure_future(future_event(bot, 0, task, guild_id, author_id, channel_id, args if args else None))
 
     if not current_time > future_time:
-        await future_event(bot, future_time_seconds, task, guild_id, author_id, channel_id, args if args else None)
-        loop.create_task(
+        asyncio.ensure_future(
             future_event(bot, future_time_seconds, task, guild_id, author_id, channel_id, args if args else None))
 
 
@@ -199,7 +197,8 @@ async def load_future_events(bot: commands.Bot):
     for event in data.find():
         ext_args = event.get("ext_args") if event.get("ext_args") else None
         await load_future_event(bot, event.get("guild_id"), event.get("author_id"), event.get("channel_id"),
-                                (event.get("execution_time")).parse(), event.get("task"), ext_args)
+                                event.get("execution_time"), event.get("task"), ext_args)
+    return data.find().count()
 
 
 async def create_future_event(bot: commands.Bot, guild: discord.Guild, author: discord.Member,
