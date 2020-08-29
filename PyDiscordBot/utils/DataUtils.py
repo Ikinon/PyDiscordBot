@@ -164,9 +164,21 @@ async def guild_moderation(guild: discord.Guild, user: Union[discord.Member, dis
         return (await guild_data(guild.id)).get('guild_moderation').get(str(user.id)).get(custom)
 
 
-async def load_future_event(bot, guild_id, author_id, channel_id, future_time: datetime,
+async def load_future_event(bot, guild_id: int, author_id:int , channel_id:int, future_time: datetime,
                             task_name: str, task__uuid: Optional[_uuid.UUID], delete_after: bool = True,
                             ext_args: Optional[list] = None):
+    """
+
+    :param bot: instance of bot
+    :param guild_id: ID of guild (passed through to function)
+    :param author_id: ID of author (passed through to function)
+    :param channel_id: ID of channel (passed through to function)
+    :param future_time: datetime to execute task at
+    :param task_name: Name of function in scheduling/Actions to execute
+    :param task__uuid: UUID of task, optional but needed to delete all task info after (passed through to function)
+    :param delete_after: whether or not to delete the task after completion, defaults to True
+    :param ext_args: Any IDs or other info the task needs, defaults to None (passed through to function)
+    """
     task = getattr(Actions, f'{task_name}')
     if not callable(task):
         raise TypeError('task must be a coroutine function')
