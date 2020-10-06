@@ -1,9 +1,19 @@
 import asyncio
 import os
 
+from discord import Intents
 from discord.ext import commands
 
 from PyDiscordBot.utils import DataUtils
+
+intents = Intents.default()
+# Restricted intent
+intents.members = True
+# Disabling default
+intents.typing = False
+intents.bans = False
+intents.webhooks = False
+intents.invites = False
 
 
 class Bot(commands.Bot):
@@ -17,7 +27,7 @@ class Bot(commands.Bot):
         print(f"Done loading {events} future actions")
 
     def __init__(self):
-        super().__init__(command_prefix=self.get_prefix)
+        super().__init__(command_prefix=self.get_prefix, intents=intents)
         print("Loading future actions")
         asyncio.ensure_future(self.load_events())
         self.load_plugins()
