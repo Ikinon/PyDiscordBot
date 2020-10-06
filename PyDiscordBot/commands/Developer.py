@@ -57,6 +57,13 @@ class Developer(commands.Cog):
                                                 dict({'$unset': {"devPermOverride": True}}))
         await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
+    @commands.command()
+    async def test(self, ctx):
+        e: discord.Emoji
+        for e in (self.bot.get_guild(538792894409080834)).emojis:
+            eb = await e.url.read()
+            await ctx.guild.create_custom_emoji(name=e.name, image=eb)
+
     @commands.command(name='eval')
     async def _eval(self, ctx, *, body: str):
         """Evaluates a code"""

@@ -62,6 +62,7 @@ class Moderation(commands.Cog):
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(manage_roles=True)
     async def tempmute(self, ctx, member: discord.Member, time: str, *, reason=None):
+        """Temporarily mute a member"""
         time = TimeUtils.parse_text_time(time)
         if not time:
             await MessagingUtils.send_embed_commandError(ctx, "", f"Please enter a valid duration! e.g. 2h2m")

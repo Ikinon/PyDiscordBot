@@ -24,19 +24,21 @@ class Music(commands.Cog):
 
     @commands.command(name="pause")
     async def pause(self, ctx):
+        """Pauses the player"""
         player = self.wavelink.get_player(ctx.guild.id)
         if player.is_paused:
             await player.set_pause(False)
-            return await MessagingUtils.send_embed_commandWarning(ctx, "", "Player Unpaused")
+            return await MessagingUtils.send_embed_commandSuccess(ctx, "", "Player Unpaused")
         await player.set_pause(True)
         await MessagingUtils.send_embed_commandSuccess(ctx, "", "Paused playback")
 
     @commands.command()
     async def play(self, ctx, *, query: str):
+        """Plays a track from a query"""
         tracks = await self.bot.wavelink.get_tracks(f'ytsearch:{query}')
 
         if not tracks:
-            return await MessagingUtils.send_embed_commandError(ctx, "", "Could not find any songs with that query")
+            return await MessagingUtils.send_embed_commandFail(ctx, "", "Could not find any songs with that query")
 
         player = self.wavelink.get_player(ctx.guild.id)
         if not player.is_connected:
@@ -47,6 +49,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def playing(self, ctx):
+        """Gets information about the currently playing song"""
         player = self.wavelink.get_player(ctx.guild.id)
         song: wavelink.Track = player.current
         if not song:
@@ -65,6 +68,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def search(self, ctx, *, query: str):
+        """Searches youtube for the query"""
         tracks = await self.wavelink.get_tracks(f'ytsearch:{query}')
 
         if not tracks:
@@ -89,11 +93,13 @@ class Music(commands.Cog):
 
     @commands.command()
     async def stop(self, ctx):
+        """Stops the player and clears the queue"""
         await (self.wavelink.get_player(ctx.guild.id)).destroy()
         await MessagingUtils.send_embed_commandSuccess(ctx, "", "Stopped music")
 
     @commands.command(name="join", aliases=["connect"])
     async def _join(self, ctx, *, channel: discord.VoiceChannel = None):
+        """Joins to a specified channel or the channel the author is connected to"""
         if not channel:
             if isinstance(ctx.author.voice, discord.member.VoiceState):
                 channel = ctx.author.voice.channel
@@ -106,6 +112,7 @@ class Music(commands.Cog):
 
     @commands.command(name="leave", aliases=["disconnect"])
     async def _leave(self, ctx):
+        """Leaves the channel currently connected to"""
         player = self.wavelink.get_player(ctx.guild.id)
         channel = discord.utils.get(ctx.guild.channels, id=player.channel_id)
         if channel is None:
@@ -115,6 +122,7 @@ class Music(commands.Cog):
 
     @commands.command(name="volume", aliases=["vol"])
     async def _volume(self, ctx, volume: int = None):
+        """Gets/sets the volume"""
         player = self.wavelink.get_player(ctx.guild.id)
         if not volume:
             return await MessagingUtils.send_embed_commandInfo(ctx, "", f"Volume is currently at {player.volume}")
