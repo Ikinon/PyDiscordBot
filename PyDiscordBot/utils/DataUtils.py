@@ -21,31 +21,27 @@ async def configData(data):
 
 raw_db = pymongo.MongoClient(config["database"])
 
-
-async def guild_database() -> pymongo.collection.Collection:
-    return raw_db["database"]["guilds"]
+guild_database = raw_db["database"]["guilds"]
 
 
-async def guild_data(guild_id: int, database: pymongo.collection.Collection = None) -> dict:
+def guild_data(guild_id: int, database: pymongo.collection.Collection = None) -> dict:
     if database is None:
-        database = (await guild_database())
+        database = guild_database
     for x in database.find(dict({'_id': guild_id})):
         return x
 
 
-async def blocked_database() -> pymongo.collection.Collection:
-    return raw_db["database"]["blocked_ids"]
+blocked_database = raw_db["database"]["blocked_ids"]
 
 
-async def blocked_data(id: int, database: pymongo.collection.Collection = None) -> dict:
+def blocked_data(id: int, database: pymongo.collection.Collection = None) -> dict:
     if database is None:
-        database = (await blocked_database())
+        database = blocked_database
     for x in database.find(dict({'_id': id})):
         return x
 
 
-async def future_actions_database() -> pymongo.collection.Collection:
-    return raw_db["database"]["future_actions"]
+future_actions_database = raw_db["database"]["future_actions"]
 
 
 async def prefix(prefix_location: discord.Guild = None, change: bool = False, new_prefix: str = None) -> str:
@@ -58,24 +54,24 @@ async def prefix(prefix_location: discord.Guild = None, change: bool = False, ne
     """
     if prefix_location is not None:
         if change is False:
-            guild_prefix = (await guild_data(prefix_location.id)).get("prefix")
+            guild_prefix = (guild_data(prefix_location.id)).get("prefix")
             if guild_prefix is not None:
                 return guild_prefix
             if guild_prefix is None:
                 default_prefix = await configData("prefix")
-                (await guild_database()).update_one(dict({'_id': prefix_location.id}),
-                                                    dict({'$set': {'prefix': default_prefix}}))
+                guild_database.update_one(dict({'_id': prefix_location.id}),
+                                          dict({'$set': {'prefix': default_prefix}}))
                 return default_prefix
         elif change is True:
             if new_prefix is None:
                 default_prefix = await configData("prefix")
-                (await guild_database()).update_one(dict({'_id': prefix_location.id}),
-                                                    dict({'$set': {'prefix': default_prefix}}))
+                guild_database.update_one(dict({'_id': prefix_location.id}),
+                                          dict({'$set': {'prefix': default_prefix}}))
                 return default_prefix
             disallowed = [' ', "\"", "\'"]
             if len(new_prefix) <= 5 and new_prefix.isascii() and not any(char in new_prefix for char in disallowed):
-                (await guild_database()).update_one(dict({'_id': prefix_location.id}),
-                                                    dict({'$set': {'prefix': new_prefix}}))
+                guild_database.update_one(dict({'_id': prefix_location.id}),
+                                          dict({'$set': {'prefix': new_prefix}}))
                 return new_prefix
             elif new_prefix:
                 raise ValueError(
@@ -104,7 +100,7 @@ async def guild_settings(guild: discord.Guild, setting, settings: Union[discord.
     :param check_value_type: Check if value is same type as old value (DOESN'T work with insert_new)
     """
     if isinstance(settings, discord.Guild) or settings is None:
-        settings = (await guild_data(guild.id)).get("guild_settings")
+        settings = guild_data(guild.id).get("guild_settings")
     subset = None
     to_ret = []
     for item in settings:  # iterating through subsets
@@ -134,7 +130,7 @@ async def guild_settings(guild: discord.Guild, setting, settings: Union[discord.
             settings[subset][setting] = value
         elif insert_new:
             settings[setting_subset][setting] = value
-        (await (guild_database())).update_many(dict({'_id': guild.id}), dict({'$set': {'guild_settings': settings}}))
+        guild_database.update_many(dict({'_id': guild.id}), dict({'$set': {'guild_settings': settings}}))
     return tuple(to_ret)
 
 
@@ -158,13 +154,13 @@ async def guild_moderation(guild: discord.Guild, user: Union[discord.Member, dis
     if change is True or remove is True:
         if remove is True and value is None:
             value = True  # Just need anything here
-        (await guild_database()).update_one(dict({'_id': guild.id}),
-                                            dict({operator: {f'guild_moderation.{str(user.id)}.{custom}': value}}))
+        guild_database.update_one(dict({'_id': guild.id}),
+                                  dict({operator: {f'guild_moderation.{str(user.id)}.{custom}': value}}))
     if get_values:
-        return (await guild_data(guild.id)).get('guild_moderation').get(str(user.id)).get(custom)
+        return guild_data(guild.id).get('guild_moderation').get(str(user.id)).get(custom)
 
 
-async def load_future_event(bot, guild_id: int, author_id:int , channel_id:int, future_time: datetime,
+async def load_future_event(bot, guild_id: int, author_id: int, channel_id: int, future_time: datetime,
                             task_name: str, task__uuid: Optional[_uuid.UUID], delete_after: bool = True,
                             ext_args: Optional[list] = None):
     """
@@ -210,7 +206,7 @@ async def load_future_event(bot, guild_id: int, author_id:int , channel_id:int, 
 
 
 async def load_future_events(bot: commands.Bot):
-    data = await future_actions_database()
+    data = future_actions_database
     for event in data.find():
         ext_args = event.get("ext_args") if event.get("ext_args") else None
         await load_future_event(bot, event.get("guild_id"), event.get("author_id"), event.get("channel_id"),

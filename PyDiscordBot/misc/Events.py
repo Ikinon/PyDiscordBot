@@ -19,11 +19,11 @@ async def before_invoke(message):
     try:
         if message.author.id in await DataUtils.configData('developer_id'):
             return True
-        blocked_db = await DataUtils.blocked_database()
-        if (await DataUtils.blocked_data(message.author.id, blocked_db)).get('state'):
+        blocked_db = DataUtils.blocked_database()
+        if (DataUtils.blocked_data(message.author.id, blocked_db)).get('state'):
             return False
         elif message.guild is not None:
-            if (await DataUtils.blocked_data(message.guild.id, blocked_db)).get('state'):
+            if (DataUtils.blocked_data(message.guild.id, blocked_db)).get('state'):
                 return False
         else:
             return True
@@ -41,7 +41,7 @@ class Events(commands.Cog):
             {"_id": guild.id, "guild_id": guild.id, "modlog_status": "NONE", "guild_settings":
                 {"general": {"deleteCommand": False, "showPermErrors": True, "prefixOnMention": True},
                  "moderation": {"mute_role": 0, "muteOnRejoin": True}}, }]
-        (await DataUtils.guild_database()).insert_many(toinsert)
+        DataUtils.guild_database.insert_many(toinsert)
 
     @commands.Cog.listener()
     async def on_member_join(self, member):

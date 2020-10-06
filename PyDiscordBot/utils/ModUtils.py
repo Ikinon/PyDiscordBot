@@ -115,19 +115,19 @@ class Actions:
         return await self.ctx.guild.create_role(name=name, permissions=permissions, reason=reason)
 
     async def modlog_status(self) -> Union[list, bool]:
-        modlog_status = (await DataUtils.guild_data(self.ctx.guild.id)).get('modlog_status')
+        modlog_status = DataUtils.guild_data(self.ctx.guild.id).get('modlog_status')
         if modlog_status == "NONE":
             return False
         elif modlog_status:
-            return [(await DataUtils.guild_data(self.ctx.guild.id)).get('modlog_channel'), modlog_status]
+            return [DataUtils.guild_data(self.ctx.guild.id).get('modlog_channel'), modlog_status]
 
     async def update_modlog_status(self, value) -> None:
-        (await DataUtils.guild_database()).update_one(dict({'_id': self.ctx.guild.id}),
-                                                      dict({'$set': {"modlog_status": value}}))
+        DataUtils.guild_database.update_one(dict({'_id': self.ctx.guild.id}),
+                                            dict({'$set': {"modlog_status": value}}))
 
     async def update_modlog_channel(self, value: int) -> None:
-        (await DataUtils.guild_database()).update_one(dict({'_id': self.ctx.guild.id}),
-                                                      dict({'$set': {"modlog_channel": value}}))
+        DataUtils.guild_database.update_one(dict({'_id': self.ctx.guild.id}),
+                                            dict({'$set': {"modlog_channel": value}}))
 
     async def kick(self, member: discord.Member, reason=None):
         reason = await self.__reason_convert(reason)
@@ -222,7 +222,7 @@ class Actions:
     async def warn(self, member, reason: str = None):
         reason = await self.__reason_convert(reason)
         try:
-            warnings = (await DataUtils.guild_data(self.ctx.guild.id)).get('guild_moderation').get(
+            warnings = DataUtils.guild_data(self.ctx.guild.id).get('guild_moderation').get(
                 str(member.id)).get("warnings")
             if warnings is None: raise AttributeError
         except AttributeError:

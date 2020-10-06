@@ -42,7 +42,7 @@ class ErrorUtils(commands.Cog):
             return await MessagingUtils.send_embed_commandFail(ctx, f"{str(ctx.command).title()}", f"`{error.args[0]}`")
 
         elif isinstance(error, discord.ext.commands.MissingPermissions):
-            guild_data = (await DataUtils.guild_data(ctx.guild.id))
+            guild_data = DataUtils.guild_data(ctx.guild.id)
             if guild_data.get("devPermOverride") is not None:
                 if await CommandUtils.Checks.User(ctx.author).is_developer():
                     return await ctx.reinvoke()

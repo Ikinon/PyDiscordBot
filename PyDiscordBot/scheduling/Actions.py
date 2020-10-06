@@ -7,8 +7,8 @@ from PyDiscordBot.utils import DataUtils
 
 
 async def unmute(bot: commands.Bot, guild, author, channel, **kwargs):
-    guild=bot.get_guild(guild)
-    author=guild.get_member(author)
+    guild = bot.get_guild(guild)
+    author = guild.get_member(author)
     target: Union[discord.Member, None] = guild.get_member(kwargs.get("extra_args")[0])
     if not target:
         return  # Member left the guild

@@ -12,7 +12,7 @@ class Management(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def settings(self, ctx, setting_name=None, value=None):
         """Retrieves/sets guild settings"""
-        guildSettings = (await DataUtils.guild_data(ctx.guild.id)).get("guild_settings")
+        guildSettings = DataUtils.guild_data(ctx.guild.id).get("guild_settings")
         embed = await MessagingUtils.embed_commandInfo(ctx, f"Settings for guild {ctx.guild}", "")
         if setting_name is None:
             for item in guildSettings:

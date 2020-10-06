@@ -19,8 +19,8 @@ class Developer(commands.Cog):
 
     @commands.command(aliases=["exit"])
     async def shutdown(self, ctx):
-        msg=await MessagingUtils.send_embed_commandInfo(ctx, "", "Sure?")
-        check=await MessagingUtils.message_timechecked(self.bot, ctx, msg, 10)
+        msg = await MessagingUtils.send_embed_commandInfo(ctx, "", "Sure?")
+        check = await MessagingUtils.message_timechecked(self.bot, ctx, msg, 10)
         if check:
             return await self.bot.logout()
         else:
@@ -50,11 +50,11 @@ class Developer(commands.Cog):
     @commands.command(name="permoverride")
     async def override_perms(self, ctx, value: bool):
         if value is True:
-            (await DataUtils.guild_database()).update_one(dict({'_id': ctx.guild.id}),
-                                                          dict({'$set': {"devPermOverride": True}}))
+            DataUtils.guild_database.update_one(dict({'_id': ctx.guild.id}),
+                                                dict({'$set': {"devPermOverride": True}}))
         if value is False:
-            (await DataUtils.guild_database()).update_one(dict({'_id': ctx.guild.id}),
-                                                          dict({'$unset': {"devPermOverride": True}}))
+            DataUtils.guild_database.update_one(dict({'_id': ctx.guild.id}),
+                                                dict({'$unset': {"devPermOverride": True}}))
         await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
     @commands.command(name='eval')
