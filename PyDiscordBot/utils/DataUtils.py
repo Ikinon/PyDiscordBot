@@ -24,21 +24,15 @@ raw_db = pymongo.MongoClient(config["database"])
 guild_database = raw_db["database"]["guilds"]
 
 
-def guild_data(guild_id: int, database: pymongo.collection.Collection = None) -> dict:
-    if database is None:
-        database = guild_database
-    for x in database.find(dict({'_id': guild_id})):
-        return x
+def guild_data(guild_id: int, database: pymongo.collection.Collection = guild_database) -> dict:
+    return database.find(dict({'_id': guild_id})).next()
 
 
 blocked_database = raw_db["database"]["blocked_ids"]
 
 
-def blocked_data(id: int, database: pymongo.collection.Collection = None) -> dict:
-    if database is None:
-        database = blocked_database
-    for x in database.find(dict({'_id': id})):
-        return x
+def blocked_data(id: int, database: pymongo.collection.Collection = blocked_database) -> dict:
+    return database.find(dict({'_id': id})).next()
 
 
 future_actions_database = raw_db["database"]["future_actions"]
