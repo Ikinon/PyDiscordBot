@@ -5,15 +5,15 @@ import discord
 import wavelink
 from discord.ext import commands
 
-from PyDiscordBot.utils import MessagingUtils, DataUtils, TimeUtils
+from PyDiscordBot.utils import MessagingUtils, DataUtils, TimeUtils, MusicUtils
 
 
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.wavelink = wavelink.Client(bot=bot)
+        self.wavelink = MusicUtils.WavelinkClient(bot=bot)
         if not hasattr(bot, 'wavelink'):
-            self.bot.wavelink = self.wavelink
+            self.bot.wavelink_client = self.wavelink
             node_config: dict = DataUtils.config["lavaplayer"]
             self.bot.loop.create_task(self.wavelink.initiate_node(host=node_config.get("host"),
                                                                   port=node_config.get("port"),
@@ -35,7 +35,7 @@ class Music(commands.Cog):
     @commands.command()
     async def play(self, ctx, *, query: str):
         """Plays a track from a query"""
-        tracks = await self.bot.wavelink.get_tracks(f'ytsearch:{query}')
+        tracks = await self.wavelink.get_tracks(f'ytsearch:{query}')
 
         if not tracks:
             return await MessagingUtils.send_embed_commandFail(ctx, "", "Could not find any songs with that query")
@@ -120,9 +120,10 @@ class Music(commands.Cog):
         await player.disconnect()
         await MessagingUtils.send_embed_commandSuccess(ctx, "", f"Disconnected from voice channel {channel.name}")
 
+        wavelink.WavelinkMixin.listener()
+
     @commands.command(name="volume", aliases=["vol"])
     async def _volume(self, ctx, volume: int = None):
-        """Gets/sets the volume"""
         player = self.wavelink.get_player(ctx.guild.id)
         if not volume:
             return await MessagingUtils.send_embed_commandInfo(ctx, "", f"Volume is currently at {player.volume}")
