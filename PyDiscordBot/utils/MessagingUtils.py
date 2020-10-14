@@ -46,10 +46,9 @@ async def message_timecheckednumbers(bot: commands.Bot, ctx: commands.Context, m
     """
     if nummax > 9:
         raise ValueError("argument 'nummax' should be lower than 9")
-    temp = 1
-    for x in range(0, nummax):
-        await msg.add_reaction(f'{temp}\N{combining enclosing keycap}')
-        temp += 1
+
+    for x, z in zip(range(0, nummax), range(1, nummax + 1)):
+        asyncio.create_task(msg.add_reaction(f'{z}\N{combining enclosing keycap}'))
 
     def check_reaction(reaction):
         search = re.search("[0-9](?:\\N{combining enclosing keycap})", str(reaction))

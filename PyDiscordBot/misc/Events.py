@@ -19,7 +19,7 @@ async def before_invoke(message):
     try:
         if message.author.id in await DataUtils.configData('developer_id'):
             return True
-        blocked_db = DataUtils.blocked_database()
+        blocked_db = DataUtils.blocked_database
         if (DataUtils.blocked_data(message.author.id, blocked_db)).get('state'):
             return False
         elif message.guild is not None:

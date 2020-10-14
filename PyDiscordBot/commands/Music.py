@@ -72,15 +72,15 @@ class Music(commands.Cog):
         tracks = await self.wavelink.get_tracks(f'ytsearch:{query}')
 
         if not tracks:
-            return await MessagingUtils.send_embed_commandError(ctx, "", "Could not find any songs with that query")
+            return await MessagingUtils.send_embed_commandFail(ctx, "", "Could not find any songs with that query")
 
         embed = await MessagingUtils.embed_commandInfo(ctx, f"Found songs with query {query}", "")
         max = 5
         if len(tracks) < 5:
             max = len(tracks)
 
-        for track in itertools.islice(tracks, max):
-            embed.description += f"{track}\n"
+        for track, x in zip(itertools.islice(tracks, max), range(1, max+1)):
+            embed.description += f"{x}: {track}\n"
 
         embed.description += f"\n\nPick an item from list"
         msg: discord.Message = await ctx.send(embed=embed)

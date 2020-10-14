@@ -24,15 +24,15 @@ raw_db = pymongo.MongoClient(config["database"])
 guild_database = raw_db["database"]["guilds"]
 
 
-def guild_data(guild_id: int, database: pymongo.collection.Collection = guild_database) -> dict:
-    return database.find(dict({'_id': guild_id})).next()
+def guild_data(guild_id: int, database: pymongo.collection.Collection = guild_database) -> Optional[dict]:
+    return next(database.find(dict({'_id': guild_id})), None)
 
 
 blocked_database = raw_db["database"]["blocked_ids"]
 
 
-def blocked_data(id: int, database: pymongo.collection.Collection = blocked_database) -> dict:
-    return database.find(dict({'_id': id})).next()
+def blocked_data(id: int, database: pymongo.collection.Collection = blocked_database) -> Optional[dict]:
+    return next(database.find(dict({'_id': id})), None)
 
 
 future_actions_database = raw_db["database"]["future_actions"]
@@ -220,12 +220,12 @@ async def create_future_event(bot: commands.Bot, guild: discord.Guild, author: d
         "_id": _id, "task": task_name, "guild_id": guild.id, "author_id": author.id,
         "channel_id": channel.id, "ext_args": extra_args, "delete_after": delete_after, "creation_time": creation_time,
         "execution_time": run_at}]
-    (await future_actions_database()).insert_many(to_insert)
+    future_actions_database.insert_many(to_insert)
     await load_future_event(bot, guild.id, author.id, channel.id, run_at, task_name, _id, delete_after, extra_args)
 
 
 async def delete_future_event(uuid: _uuid.UUID, database: bool = True, task: bool = True):
     if database:
-        (await future_actions_database()).delete_one({"_id": uuid})
+        future_actions_database.delete_one({"_id": uuid})
     if task:
         next(task for task in asyncio.all_tasks() if task.get_name() == f"FUTR-AXN:{uuid}").cancel()
