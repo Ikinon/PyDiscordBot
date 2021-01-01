@@ -1,5 +1,5 @@
 import re
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from typing import Optional
 
 
@@ -13,7 +13,7 @@ def human_readable_time(seconds: int) -> Optional[str]:
 
 
 def human_readable_datetime(time: datetime) -> str:
-    return time.strftime("%A %d %B %Y at %H:%M UTC")  # day date month year time
+    return time.astimezone(timezone.utc).strftime("%A %d %B %Y at %H:%M UTC")  # day date month year time
 
 
 def parse_text_time(time_str: str) -> Optional[timedelta]:
