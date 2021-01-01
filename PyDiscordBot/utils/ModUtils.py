@@ -165,10 +165,9 @@ class Actions:
         reply = await MessagingUtils.embed_commandSuccess(self.ctx, f"Unban user", f"{user} has been un-banned")
         return Utils(self.bot, self.ctx, reply, user, reason)
 
-    # TODO: Timed mute
     async def mute(self, member: discord.Member, reason: str = None):
         reason = await self.__reason_convert(reason)
-        embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Mute Toggle", f"{member} has been muted")
+        embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Mute Toggle", f"{member} has been muted.\nUntil: \u267E"'')
         try:
             role = discord.utils.get(self.ctx.guild.roles, id=
             (await DataUtils.guild_settings(self.ctx.guild, 'mute_role', get_setting_value=True))[0])
@@ -213,7 +212,7 @@ class Actions:
         unmute_at_datetime = datetime.datetime.today() + unmute_at
         await DataUtils.create_future_event(self.bot, self.ctx.guild, self.ctx.author, self.ctx.channel,
                                             unmute_at_datetime, "unmute", [member.id])
-        until_date = TimeUtils.human_readable_datetime(unmute_at_datetime.utcnow())
+        until_date = TimeUtils.human_readable_datetime(unmute_at_datetime)
         time_until = TimeUtils.human_readable_time(int(unmute_at.total_seconds()))
         embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Muted Member",
                                                           f"{member} has been muted\n Until {until_date} (in {time_until})")
