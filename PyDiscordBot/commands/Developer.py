@@ -6,7 +6,7 @@ from contextlib import redirect_stdout
 import discord
 from discord.ext import commands
 
-from PyDiscordBot.utils import DataUtils, CommandUtils, MessagingUtils
+from PyDiscordBot.utils import DataUtils, CommandUtils, MessagingUtils, Wrappers
 
 
 class Developer(commands.Cog):
@@ -57,13 +57,6 @@ class Developer(commands.Cog):
                                                 dict({'$unset': {"devPermOverride": True}}))
         await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
-    @commands.command()
-    async def test(self, ctx):
-        e: discord.Emoji
-        for e in (self.bot.get_guild(538792894409080834)).emojis:
-            eb = await e.url.read()
-            await ctx.guild.create_custom_emoji(name=e.name, image=eb)
-
     @commands.command(name='eval')
     async def _eval(self, ctx, *, body: str):
         """Evaluates a code"""
@@ -101,6 +94,10 @@ class Developer(commands.Cog):
                 await ctx.message.add_reaction('\u2705')
             except:
                 pass
+
+            if len(str(ret) or len(value)) > 1980:  # a bit less than char limit due to formating
+                to_post = ret if not None else value
+                await(ctx.send(await Wrappers.pastebin_paste(to_post)))
 
             if ret is None:
                 if value:

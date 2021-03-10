@@ -5,7 +5,7 @@ import discord
 from aiohttp import ClientSession
 from discord.ext import commands
 
-from PyDiscordBot.utils import MessagingUtils, DataUtils, CommandUtils
+from PyDiscordBot.utils import MessagingUtils, DataUtils, CommandUtils, Wrappers
 
 
 class ErrorUtils(commands.Cog):
@@ -72,16 +72,15 @@ class ErrorUtils(commands.Cog):
         elif not ctx.guild:
             err += f"\nGuild: No guild\n\n{trace_error}"
 
-        async with ClientSession() as session:
-            async with session.post('https://hasteb.in/documents', data=''.join(''.join(err))) as post:
-                await MessagingUtils.send_embed_commandError(ctx,
-                                                             "There was an error while running the command!",
-                                                             f"Stack Trace: https://hasteb.in/" +
-                                                             (await post.json())['key'])
-                if await DataUtils.configData("webhook"):
-                    webhook = discord.Webhook.from_url(await DataUtils.configData("webhook"),
-                                                       adapter=discord.AsyncWebhookAdapter(session))
-                    await webhook.send(err)
+        url = await Wrappers.pastebin_paste(err)
+        await MessagingUtils.send_embed_commandError(ctx,
+                                                     "There was an error while running the command!",
+                                                     f"Stack Trace: " + url)
+
+        webhook = DataUtils.config["webhook"]
+        if webhook:
+            await (discord.Webhook.from_url(webhook,
+                                            adapter=discord.AsyncWebhookAdapter(ClientSession())).send(err))
 
 
 def setup(bot):
