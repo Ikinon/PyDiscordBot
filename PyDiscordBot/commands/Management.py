@@ -1,3 +1,6 @@
+from typing import Union
+
+import discord
 from discord.ext import commands
 
 from PyDiscordBot.utils import MessagingUtils, ModUtils, DataUtils
@@ -35,13 +38,85 @@ class Management(commands.Cog):
                                 value=f"Old setting: {old_setting}\nNew setting: {value}")
         await ctx.send(embed=embed)
 
+    @commands.group("autorole", invoke_without_command=True)
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def autorole(self, ctx, enabled: Union[Union[bool, str], None] = None):
+        if isinstance(enabled, str):
+            if enabled.lower() == "true":
+                enabled = True
+            elif enabled.lower() == "false":
+                enabled = False
+            else:
+                raise discord.ext.commands.BadArgument
+
+        setting = enabled
+        if not enabled:
+            setting = (await DataUtils.guild_settings(ctx.guild, "autorole", get_setting_value=True, value=False,
+                                                      setting_subset="moderation", check_value_type=False,
+                                                      insert_new=True))[0] or False
+        elif enabled:
+            await DataUtils.guild_settings(ctx.guild, "autorole", value=enabled, change=True,
+                                           setting_subset="moderation", insert_new=True, check_value_type=False)
+
+        try:
+            roles = list(map(lambda x: ctx.guild.get_role(x).name,
+                             (await DataUtils.guild_management(ctx.guild, "autorole", "roles", get_values=True))))
+        except AttributeError:
+            roles = None
+        await MessagingUtils.send_embed_commandInfo(ctx, "Autorole Settings",
+                                                    f"Enabled: {setting}\nRoles in autorole: {roles}")
+
+    @autorole.command(name="add")
+    @commands.has_permissions(administrator=True)
+    async def autorole_add_role(self, ctx, role: discord.Role):
+
+        try:
+            roles = (await DataUtils.guild_management(ctx.guild, "autorole", "roles", get_values=True))
+        except AttributeError:
+            roles = []
+
+        if role.id in roles:
+            return await MessagingUtils.send_embed_commandWarning(ctx, "Autorole",
+                                                                  f"Role `{role.name}` is already in autorole!")
+        roles.append(role.id)
+
+        await DataUtils.guild_management(ctx.guild, "autorole", "roles", change=True, value=roles)
+
+        roles = list(map(lambda x: ctx.guild.get_role(x).name, roles))
+        embed = await MessagingUtils.embed_commandSuccess(ctx, "Autorole", "")
+        embed.add_field(name="Roles added for autorole", value=f"Roles being added: {roles}")
+        await ctx.send(embed=embed)
+
+    @autorole.command("remove")
+    @commands.has_permissions(administrator=True)
+    async def autorole_remove_role(self, ctx, role: discord.Role):
+
+        try:
+            roles = (await DataUtils.guild_management(ctx.guild, "autorole", "roles", get_values=True))
+        except AttributeError:
+            roles = []
+
+        if role.id not in roles:
+            return await MessagingUtils.send_embed_commandWarning(ctx, "Autorole",
+                                                                  f"Role `{role.name}` is not in autorole!")
+        roles.remove(role.id)
+
+        await DataUtils.guild_management(ctx.guild, "autorole", "roles", change=True, value=roles)
+
+        roles = list(map(lambda x: ctx.guild.get_role(x).name, roles))
+        embed = await MessagingUtils.embed_commandSuccess(ctx, "Autorole", "")
+        embed.add_field(name="Roles removed for autorole", value=f"Roles being added: {roles}")
+        await ctx.send(embed=embed)
+
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def modlog(self, ctx, cmds=None, channel=None):
         """Retrieve/set modlog settings"""
         if cmds is not None:
-            mod_cmds = [str(x) for x in (self.bot.get_cog("Moderation").get_commands()) + ["un-mute", "ALL", "NONE"]]
+            mod_cmds = [str(x) for x in
+                        (self.bot.get_cog("Moderation").get_commands()) + ["un-mute", "ALL", "NONE"]]
             if ',' in cmds:
                 if set(cmds).issubset(mod_cmds):
                     await ModUtils.Actions(self.bot, ctx).update_modlog_status(cmds)

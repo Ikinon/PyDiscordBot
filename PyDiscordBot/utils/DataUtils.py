@@ -75,7 +75,8 @@ async def prefix(prefix_location: discord.Guild = None, change: bool = False, ne
         return await configData("prefix")
 
 
-async def guild_settings(guild: discord.Guild, setting, settings: Union[discord.Guild, dict] = None, value: Any = None,
+async def guild_settings(guild: Union[discord.Guild, int], setting, settings: Union[discord.Guild, dict] = None,
+                         value: Any = None,
                          get_setting_subset: bool = False, get_setting_value: bool = False, check_value: bool = False,
                          change: bool = False, setting_subset: str = None, insert_new: bool = False,
                          check_value_type: bool = True) -> tuple:
@@ -94,7 +95,10 @@ async def guild_settings(guild: discord.Guild, setting, settings: Union[discord.
     :param check_value_type: Check if value is same type as old value (DOESN'T work with insert_new)
     """
     if isinstance(settings, discord.Guild) or settings is None:
-        settings = guild_data(guild.id).get("guild_settings")
+        if isinstance(guild, discord.Guild):
+            settings = guild_data(guild.id).get("guild_settings")
+        else:
+            settings = guild_data(guild).get("guild_settings")
     subset = None
     to_ret = []
     for item in settings:  # iterating through subsets
@@ -104,6 +108,8 @@ async def guild_settings(guild: discord.Guild, setting, settings: Union[discord.
                 subset = item  # subset of current setting
                 if get_setting_subset:
                     to_ret.append(item)
+                if insert_new:
+                    insert_new = False
                 if get_setting_value:
                     to_ret.append(items.get(item_setting))  # setting
     if not insert_new:
@@ -113,17 +119,19 @@ async def guild_settings(guild: discord.Guild, setting, settings: Union[discord.
             to_ret.append(True)
         elif old_value:
             to_ret.append(False)
-    if change:
+    if change or insert_new:
         # TODO: This needs to be more accurate, for example, if the setting is a channel id, make sure it exists!
-        if check_value_type:
-            if type(old_value) is bool:  # I hope there's another decent way to try to do this
-                value = bool(strtobool(value))
-            if type(old_value) is not bool:
-                value = type(old_value)(value)
-        if not insert_new:
-            settings[subset][setting] = value
+        if change:
+            if check_value_type:
+                if type(old_value) is bool:  # I hope there's another decent way to try to do this
+                    value = bool(strtobool(value))
+                if type(old_value) is not bool:
+                    value = type(old_value)(value)
+            if not insert_new:
+                settings[subset][setting] = value
         elif insert_new:
             settings[setting_subset][setting] = value
+
         guild_database.update_many(dict({'_id': guild.id}), dict({'$set': {'guild_settings': settings}}))
     return tuple(to_ret)
 
@@ -154,8 +162,26 @@ async def guild_moderation(guild: discord.Guild, user: Union[discord.Member, dis
         return guild_data(guild.id).get('guild_moderation').get(str(user.id)).get(custom)
 
 
+async def guild_management(guild: discord.Guild, feature: str, custom: str, get_values: bool = False,
+                           change: bool = False,
+                           value=None,
+                           remove: bool = False):
+    operator = ""
+    if remove is False:
+        operator = '$set'
+    elif remove is True:
+        operator = '$unset'
+    if change is True or remove is True:
+        if remove is True and value is None:
+            value = True  # Just need anything here
+        guild_database.update_one(dict({'_id': guild.id}),
+                                  dict({operator: {f'guild_management.{feature}.{custom}': value}}))
+    if get_values:
+        return guild_data(guild.id).get('guild_management').get(feature).get(custom)
+
+
 async def load_future_event(bot, guild_id: int, author_id: int, channel_id: int, future_time: datetime,
-                            task_name: str, task__uuid: Optional[_uuid.UUID], delete_after: bool = True,
+                            task_name: str, task__uuid: Optional[_uuid.UUID] = None, delete_after: bool = True,
                             ext_args: Optional[list] = None):
     """
 
@@ -209,13 +235,16 @@ async def load_future_events(bot: commands.Bot):
     return data.find().count()
 
 
-async def create_future_event(bot: commands.Bot, guild: discord.Guild, author: discord.Member,
-                              channel: discord.TextChannel, run_at: datetime, task_name: str,
+async def create_future_event(bot: commands.Bot, guild: discord.Guild, author: discord.User,
+                              run_at: datetime, task_name: str, channel: Optional[discord.TextChannel] = None,
                               extra_args: Optional[list] = None, delete_after: bool = True):
     if not extra_args:
         extra_args = []
+    if not channel:
+        class channel: id = 0
     _id = _uuid.uuid4()
     creation_time = datetime.utcnow()
+
     to_insert = [{
         "_id": _id, "task": task_name, "guild_id": guild.id, "author_id": author.id,
         "channel_id": channel.id, "ext_args": extra_args, "delete_after": delete_after, "creation_time": creation_time,

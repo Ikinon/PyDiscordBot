@@ -1,5 +1,6 @@
 import asyncio
 from contextlib import suppress
+from datetime import datetime, timedelta
 
 import discord
 from discord.ext import commands
@@ -45,12 +46,20 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        if (await DataUtils.guild_settings(member.guild, "muteOnRejoin", get_setting_value=True))[0]:
-            if await DataUtils.guild_moderation(member.guild, member, "muted", get_values=True):
-                with suppress(AttributeError, discord.Forbidden):  # No role/no perms, whatever
+        with suppress(AttributeError, discord.Forbidden):  # No role/no perms, whatever
+            if (await DataUtils.guild_settings(member.guild, "muteOnRejoin", get_setting_value=True))[0]:
+                if await DataUtils.guild_moderation(member.guild, member, "muted", get_values=True):
                     await member.add_roles(member.guild.get_role(
                         (await DataUtils.guild_settings(member.guild, "mute_role", get_setting_value=True))[0]),
                         reason="AutoMod: Member was previously muted.")
+
+            if (await DataUtils.guild_settings(member.guild, "autorole", get_setting_value=True))[0]:
+                args = [(await DataUtils.guild_management(member.guild, "autorole", "roles", get_values=True)),
+                        member.id, "autorole"]
+
+                await DataUtils.load_future_event(self.bot, member.guild.id, self.bot.user.id, 0,
+                                                  datetime.today() + timedelta(seconds=0), "add_roles",
+                                                  ext_args=args, delete_after=False)
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

@@ -167,7 +167,8 @@ class Actions:
 
     async def mute(self, member: discord.Member, reason: str = None):
         reason = await self.__reason_convert(reason)
-        embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Mute Toggle", f"{member} has been muted.\nUntil: \u267E"'')
+        embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Mute Toggle",
+                                                          f"{member} has been muted.\nUntil: \u267E"'')
         try:
             role = discord.utils.get(self.ctx.guild.roles, id=
             (await DataUtils.guild_settings(self.ctx.guild, 'mute_role', get_setting_value=True))[0])
@@ -210,8 +211,8 @@ class Actions:
     async def tempmute(self, member: discord.Member, unmute_at: datetime.timedelta, reason: str = None):
         await self.mute(member, reason)
         unmute_at_datetime = datetime.datetime.today() + unmute_at
-        await DataUtils.create_future_event(self.bot, self.ctx.guild, self.ctx.author, self.ctx.channel,
-                                            unmute_at_datetime, "unmute", [member.id])
+        await DataUtils.create_future_event(self.bot, self.ctx.guild, self.ctx.author, unmute_at_datetime, "unmute",
+                                            self.ctx.channel, [member.id])
         until_date = TimeUtils.human_readable_datetime(unmute_at_datetime)
         time_until = TimeUtils.human_readable_time(int(unmute_at.total_seconds()))
         embed = await MessagingUtils.embed_commandSuccess(self.ctx, "Muted Member",
