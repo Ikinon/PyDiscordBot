@@ -19,7 +19,7 @@ intents.invites = False
 class Bot(commands.Bot):
 
     async def get_prefix(bot, message):
-        return await DataUtils.prefix(message.guild)
+        return DataUtils.prefix(message.guild)
 
     async def load_events(self):
         await self.wait_until_ready()
@@ -52,4 +52,4 @@ class Bot(commands.Bot):
         pass  # I need this for the on_message in events for some reason
 
 
-bot = Bot().run(asyncio.run(DataUtils.configData("token")))
+bot = Bot().run(DataUtils.config_data("token"))
