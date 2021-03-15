@@ -65,7 +65,7 @@ class Moderation(commands.Cog):
         """Temporarily mute a member"""
         time = TimeUtils.parse_text_time(time)
         if not time:
-            await MessagingUtils.send_embed_commandFail(ctx, "", f"Please enter a valid duration! e.g. 2h2m")
+            await MessagingUtils.send_embed_command_fail(ctx, "", f"Please enter a valid duration! e.g. 2h2m")
         if await ModUtils.Utils(self.bot, ctx).runchecks(member):
             (await ModUtils.Actions(self.bot, ctx).tempmute(member, time, reason)).send_modlog_reply()
 

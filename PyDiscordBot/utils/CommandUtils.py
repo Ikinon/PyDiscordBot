@@ -10,7 +10,7 @@ class DecoratorChecks:
 
     def is_developer(self, ctx: commands.Context = None):
         async def pred(ctx):
-            if ctx.author.id in await DataUtils.configData("developer_id"):
+            if ctx.author.id in DataUtils.config_data("developer_id"):
                 return True
             else:
                 return False
@@ -25,7 +25,7 @@ class Checks:
             self.user = memberuser
 
         async def is_developer(self) -> bool:
-            if self.user.id in await DataUtils.configData("developer_id"):
+            if self.user.id in DataUtils.config_data("developer_id"):
                 return True
             else:
                 return False

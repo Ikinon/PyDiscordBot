@@ -19,7 +19,7 @@ class Developer(commands.Cog):
 
     @commands.command(aliases=["exit"])
     async def shutdown(self, ctx):
-        msg = await MessagingUtils.send_embed_commandInfo(ctx, "", "Sure?")
+        msg = await MessagingUtils.send_embed_command_info(ctx, "", "Sure?")
         check = await MessagingUtils.message_timechecked(self.bot, ctx, msg, 10)
         if check:
             return await self.bot.logout()
@@ -85,17 +85,17 @@ class Developer(commands.Cog):
         try:
             with redirect_stdout(stdout):
                 ret = await func()
-        except Exception as e:
+        except Exception:
             value = stdout.getvalue()
             await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
         else:
             value = stdout.getvalue()
             try:
                 await ctx.message.add_reaction('\u2705')
-            except:
+            except discord.Forbidden:
                 pass
 
-            if len(str(ret) or len(value)) > 1980:  # a bit less than char limit due to formating
+            if len(str(ret) or len(value)) > 1980:  # a bit less than char limit due to formatting
                 to_post = ret if not None else value
                 await(ctx.send(await Wrappers.pastebin_paste(to_post)))
 

@@ -21,7 +21,7 @@ class Informational(commands.Cog):
             user: discord.User = await commands.UserConverter().convert(ctx, user)
         elif user.isdecimal():
             user = await self.bot.fetch_user(user)
-        embed = await MessagingUtils.embed_commandInfo(ctx, f"{user}", "")
+        embed = MessagingUtils.embed_command_info(ctx, f"{user}", "")
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="User ID", value=user.id, inline=False)
         embed.add_field(name="User Created", value=human_readable_datetime(user.created_at), inline=False)
@@ -51,12 +51,12 @@ class Informational(commands.Cog):
             if temp is not None:
                 guild = temp
         if isinstance(guild, str) or isinstance(guild, int):
-            return await MessagingUtils.send_embed_commandFail(ctx, "", f"Cannot find guild with name/ID `{guild}`")
+            return await MessagingUtils.send_embed_command_fail(ctx, "", f"Cannot find guild with name/ID `{guild}`")
         created_at = guild.created_at.strftime("%A %d %B %Y at %H:%M UTC")  # Day date month year time
         filter_level = str(guild.explicit_content_filter).replace("_", " ").title()
         verification_level = str(guild.verification_level).title()
 
-        embed = await MessagingUtils.embed_commandInfo(ctx, f"{guild.name}'s infomation.", "")
+        embed = MessagingUtils.embed_command_info(ctx, f"{guild.name}'s infomation.", "")
         embed.set_footer(text=f"Guild ID: {guild.id} | Requested by {ctx.author}")
         embed.set_thumbnail(url=guild.icon_url)
         embed.description = f"`Owner:` {guild.owner}\n`Created on:` {created_at}\n`Members:` {guild.member_count}\n" \

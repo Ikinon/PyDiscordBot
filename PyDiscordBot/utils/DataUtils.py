@@ -15,7 +15,7 @@ with open("config.json") as raw_cfg:
     config = json.load(raw_cfg)
 
 
-async def configData(data):
+def config_data(data):
     return config[data]
 
 
@@ -38,7 +38,7 @@ def blocked_data(id: int, database: pymongo.collection.Collection = blocked_data
 future_actions_database = raw_db["database"]["future_actions"]
 
 
-async def prefix(prefix_location: discord.Guild = None, change: bool = False, new_prefix: str = None) -> str:
+def prefix(prefix_location: discord.Guild = None, change: bool = False, new_prefix: str = None) -> str:
     """
 
     :param prefix_location: Guild to retrieve/change prefix in, or if None return default
@@ -52,13 +52,13 @@ async def prefix(prefix_location: discord.Guild = None, change: bool = False, ne
             if guild_prefix is not None:
                 return guild_prefix
             if guild_prefix is None:
-                default_prefix = await configData("prefix")
+                default_prefix = config_data("prefix")
                 guild_database.update_one(dict({'_id': prefix_location.id}),
                                           dict({'$set': {'prefix': default_prefix}}))
                 return default_prefix
         elif change is True:
             if new_prefix is None:
-                default_prefix = await configData("prefix")
+                default_prefix = config_data("prefix")
                 guild_database.update_one(dict({'_id': prefix_location.id}),
                                           dict({'$set': {'prefix': default_prefix}}))
                 return default_prefix
@@ -72,7 +72,7 @@ async def prefix(prefix_location: discord.Guild = None, change: bool = False, ne
                     "argument 'new_prefix' should be ascii (except spaces & quotes) and no more than 5 characters")
 
     if prefix_location is None:
-        return await configData("prefix")
+        return config_data("prefix")
 
 
 async def guild_settings(guild: Union[discord.Guild, int], setting, settings: Union[discord.Guild, dict] = None,
@@ -221,8 +221,8 @@ async def load_future_event(bot, guild_id: int, author_id: int, channel_id: int,
 
     if not current_time > future_time:
         loop.create_task(
-            future_event(future_time_seconds, task, guild_id, author_id, channel_id, args if args else None)
-            , name=f"FUTR-AXN:{task__uuid}")
+            future_event(future_time_seconds, task, guild_id, author_id, channel_id, args if args else None),
+            name=f"FUTR-AXN:{task__uuid}")
 
 
 async def load_future_events(bot: commands.Bot):

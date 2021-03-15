@@ -7,7 +7,7 @@ from discord.ext import commands
 from PyDiscordBot.misc import Constants
 
 
-async def embed_basic(ctx, title, description, colour, footer: bool, footercontent=None) -> discord.Embed:
+def embed_basic(ctx, title, description, colour, footer: bool, footercontent=None) -> discord.Embed:
     embed = discord.Embed(title=title, description=description, colour=colour)
     if footer is True:
         if footercontent is None:
@@ -78,41 +78,43 @@ async def message_timecheckednumbers(bot: commands.Bot, ctx: commands.Context, m
         return False
 
 
-async def embed_commandFail(ctx, title, description) -> discord.Embed:
-    return await embed_basic(ctx, title, description, Constants.commandFail, True)
+# Returns configured embed
+def embed_command_success(ctx, title, description) -> discord.Embed:
+    return embed_basic(ctx, title, description, Constants.commandSuccess, True)
 
 
-async def embed_commandSuccess(ctx, title, description) -> discord.Embed:
-    return await embed_basic(ctx, title, description, Constants.commandSuccess, True)
+def embed_command_info(ctx, title, description) -> discord.Embed:
+    return embed_basic(ctx, title, description, Constants.commandInfo, True)
 
 
-async def embed_commandInfo(ctx, title, description) -> discord.Embed:
-    return await embed_basic(ctx, title, description, Constants.commandInfo, True)
+def embed_command_warning(ctx, title, description) -> discord.Embed:
+    return embed_basic(ctx, title, description, Constants.commandWarning, True)
 
 
-async def embed_commandWarning(ctx, title, description) -> discord.Embed:
-    return await embed_basic(ctx, title, description, Constants.commandWarning, True)
+def embed_command_fail(ctx, title, description) -> discord.Embed:
+    return embed_basic(ctx, title, description, Constants.commandFail, True)
 
 
-async def embed_commandError(ctx, title, description) -> discord.Embed:
-    return await embed_basic(ctx, title, description, Constants.commandError, True)
+def embed_command_error(ctx, title, description) -> discord.Embed:
+    return embed_basic(ctx, title, description, Constants.commandError, True)
 
 
-async def send_embed_commandFail(ctx, title, description) -> discord.Message:
-    return await ctx.send(embed=await embed_commandFail(ctx, title, description))
+# Returns sent Messages
+async def send_embed_command_success(ctx, title, description) -> discord.Message:
+    return await ctx.send(embed=embed_command_success(ctx, title, description))
 
 
-async def send_embed_commandSuccess(ctx, title, description) -> discord.Message:
-    return await ctx.send(embed=await embed_commandSuccess(ctx, title, description))
+async def send_embed_command_info(ctx, title, description) -> discord.Message:
+    return await ctx.send(embed=embed_command_info(ctx, title, description))
 
 
-async def send_embed_commandInfo(ctx, title, description) -> discord.Message:
-    return await ctx.send(embed=await embed_commandInfo(ctx, title, description))
+async def send_embed_command_warning(ctx, title, description) -> discord.Message:
+    return await ctx.send(embed=embed_command_warning(ctx, title, description))
 
 
-async def send_embed_commandWarning(ctx, title, description) -> discord.Message:
-    return await ctx.send(embed=await embed_commandWarning(ctx, title, description))
+async def send_embed_command_fail(ctx, title, description) -> discord.Message:
+    return await ctx.send(embed=embed_command_fail(ctx, title, description))
 
 
-async def send_embed_commandError(ctx, title, description) -> discord.Message:
-    return await ctx.send(embed=await embed_commandError(ctx, title, description))
+async def send_embed_command_error(ctx, title, description) -> discord.Message:
+    return await ctx.send(embed=embed_command_error(ctx, title, description))

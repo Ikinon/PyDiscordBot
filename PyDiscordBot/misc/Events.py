@@ -18,7 +18,7 @@ async def after_invoke(ctx):
 
 async def before_invoke(message):
     try:
-        if message.author.id in await DataUtils.configData('developer_id'):
+        if message.author.id in DataUtils.config_data('developer_id'):
             return True
         blocked_db = DataUtils.blocked_database
         if (DataUtils.blocked_data(message.author.id, blocked_db)).get('state'):
@@ -71,7 +71,7 @@ class Events(commands.Cog):
 
             if self.bot.user in message.mentions:
                 if (await DataUtils.guild_settings(message.guild, "prefixOnMention", get_setting_value=True))[0]:
-                    return await message.channel.send(f"Prefix is: `{await DataUtils.prefix(message.guild)}`")
+                    return await message.channel.send(f"Prefix is: `{DataUtils.prefix(message.guild)}`")
 
 
 def setup(bot):
