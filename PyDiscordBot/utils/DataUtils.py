@@ -232,7 +232,7 @@ async def load_future_events(bot: commands.Bot):
         await load_future_event(bot, event.get("guild_id"), event.get("author_id"), event.get("channel_id"),
                                 event.get("execution_time"), event.get("task"), event.get("_id"),
                                 event.get("delete_after"), ext_args)
-    return data.find().count()
+    return data.count_documents({})
 
 
 async def create_future_event(bot: commands.Bot, guild: discord.Guild, author: discord.User,
