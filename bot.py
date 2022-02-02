@@ -9,6 +9,7 @@ from PyDiscordBot.utils import DataUtils
 intents = Intents.default()
 # Restricted intent
 intents.members = True
+intents.presences = True
 # Disabling default
 intents.typing = False
 intents.bans = False
@@ -29,7 +30,7 @@ class Bot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=self.get_prefix, intents=intents)
         print("Loading future actions")
-        asyncio.ensure_future(self.load_events())
+        asyncio.ensure_future(self.load_events(), loop=self.loop)
         self.load_plugins()
         print(f"Loaded {len(self.extensions)} extensions")
 
