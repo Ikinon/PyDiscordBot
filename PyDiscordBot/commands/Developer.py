@@ -59,7 +59,6 @@ class Developer(commands.Cog):
 
     @commands.command(name='eval')
     async def _eval(self, ctx, *, body: str):
-        """Evaluates a code"""
         # Source: https://github.com/Rapptz/RoboDanny/
         env = {
             'bot': self.bot,

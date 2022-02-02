@@ -9,6 +9,7 @@ from PyDiscordBot.utils import MessagingUtils, DataUtils, TimeUtils, MusicUtils
 
 
 class Music(commands.Cog):
+
     def __init__(self, bot):
         self.bot = bot
         self.wavelink = MusicUtils.WavelinkClient(bot=bot)
@@ -105,8 +106,8 @@ class Music(commands.Cog):
                 channel = ctx.author.voice.channel
             else:
                 return await MessagingUtils.send_embed_command_fail(ctx, "",
-                                                                   "Be in a voice channel for me to join or specify "
-                                                                   "a channel")
+                                                                    "Be in a voice channel for me to join or specify "
+                                                                    "a channel")
         await (self.wavelink.get_player(ctx.guild.id)).connect(channel.id)
         await MessagingUtils.send_embed_command_success(ctx, "", f"Connected to voice channel {channel.name}")
 
