@@ -1,0 +1,15 @@
+{
+  "token" : "",
+  "pastebin_key" : "",
+  "prefix" : "",
+  "database" : "",
+  "developer_id" : [],
+  "webhook" : "",
+  "lavaplayer": {
+    "host": "",
+    "port" : 0,
+    "rest_uri": "",
+    "identifier": "",
+    "password": ""
+  }
+}
